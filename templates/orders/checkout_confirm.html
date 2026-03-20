@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+
+{% block title %}Checkout - Confirm | Foodora{% endblock %}
+
+{% block content %}
+<div class="container pb-4" style="max-width:1100px;">
+  <div class="section-card p-4">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+      <h1 class="h4 mb-0">Checkout · Step 4/4 · Confirm</h1>
+      <a class="btn btn-outline-secondary" href="{% url 'orders:checkout_summary' %}">Back</a>
+    </div>
+
+    <div class="row g-3">
+      <div class="col-lg-7">
+        <div class="product-card h-auto p-3">
+          <div class="fw-semibold mb-2">Items</div>
+          {% for row in cart_items %}
+          <div class="d-flex justify-content-between mb-1">
+            <div>{{ row.menu_item.name }} <span class="text-muted">x{{ row.quantity }}</span></div>
+            <div class="fw-semibold">₹{{ row.line_total }}</div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="col-lg-5">
+        <div class="product-card h-auto p-3 mb-2">
+          <div class="fw-semibold">Total</div>
+          <div class="display-6 fw-bold" id="finalTotal">₹{{ totals.total }}</div>
+          <div class="text-muted small">Subtotal ₹{{ totals.subtotal }} · Discount ₹{{ totals.discount }}</div>
+        </div>
+        <form method="post" id="checkoutForm">
+          {% csrf_token %}
+
+          <div class="product-card h-auto p-3 mb-3">
+            <div class="fw-semibold mb-2">Order Timing</div>
+            <div class="form-check mb-2">
+              <input class="form-check-input" type="radio" name="timing_type" id="asap" value="ASAP" checked
+                onchange="document.getElementById('scheduled_time').style.display='none'">
+              <label class="form-check-label" for="asap">ASAP</label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="timing_type" id="scheduled" value="SCHEDULED"
+                onchange="document.getElementById('scheduled_time').style.display='block'">
+              <label class="form-check-label" for="scheduled">Schedule for Later</label>
+            </div>
+            <input type="datetime-local" class="form-control mt-2" name="scheduled_time" id="scheduled_time"
+              style="display:none;" />
+          </div>
+
+          <div class="product-card h-auto p-3 mb-3">
+            <div class="fw-semibold mb-2">Special Instructions</div>
+            <textarea class="form-control" name="special_instructions" rows="2"
+              placeholder="Any special requests?"></textarea>
+          </div>
+
+          <div class="product-card h-auto p-3 mb-3">
+            <div class="fw-semibold mb-2">Add a Tip</div>
+            <div class="d-flex gap-2 flex-wrap mb-2" id="tipButtons">
+              <button type="button" class="btn btn-outline-brand tip-btn" data-tip-percent="10">10%</button>
+              <button type="button" class="btn btn-outline-brand tip-btn" data-tip-percent="15">15%</button>
+              <button type="button" class="btn btn-outline-brand tip-btn" data-tip-percent="20">20%</button>
+              <button type="button" class="btn btn-outline-brand tip-btn" data-tip-percent="custom">Custom</button>
+              <button type="button" class="btn btn-brand tip-btn" data-tip-percent="0">None</button>
+            </div>
+            <div id="customTipDiv" style="display: none;">
+              <div class="input-group">
+                <span class="input-group-text">₹</span>
+                <input type="number" class="form-control" id="customTipInput" min="0" step="1"
+                  placeholder="Enter custom amount">
+              </div>
+            </div>
+            <input type="hidden" name="tip_amount" id="tipAmountInput" value="0" />
+          </div>
+
+          <button class="btn btn-brand w-100 py-3 fs-5 shadow-sm" style="border-radius: 50px;" type="submit">Confirm
+            Order</button>
+        </form>
+        <div class="text-muted small mt-2 text-center">You will be redirected to payment next.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    var subtotal = parseFloat("{{ totals.subtotal }}");
+    var baseTotal = parseFloat("{{ totals.total }}");
+    var totalEl = document.getElementById("finalTotal");
+    var tipInput = document.getElementById("tipAmountInput");
+    var tipButtons = document.querySelectorAll(".tip-btn");
+    var customDiv = document.getElementById("customTipDiv");
+    var customInput = document.getElementById("customTipInput");
+
+    function updateTip(amount) {
+      tipInput.value = amount.toFixed(2);
+      var newTotal = baseTotal + amount;
+      totalEl.textContent = "₹" + newTotal.toFixed(2);
+    }
+
+    tipButtons.forEach(btn => {
+      btn.addEventListener("click", function () {
+        tipButtons.forEach(b => {
+          b.classList.remove("btn-brand");
+          b.classList.add("btn-outline-brand");
+        });
+        this.classList.remove("btn-outline-brand");
+        this.classList.add("btn-brand");
+
+        var pct = this.getAttribute("data-tip-percent");
+        if (pct === "custom") {
+          customDiv.style.display = "block";
+          var tip = parseFloat(customInput.value || 0);
+          updateTip(tip);
+        } else {
+          customDiv.style.display = "none";
+          var tip = (subtotal * parseFloat(pct)) / 100;
+          updateTip(tip);
+        }
+      });
+    });
+
+    customInput.addEventListener("input", function () {
+      var tip = parseFloat(this.value || 0);
+      updateTip(tip);
+    });
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,9 @@
+<div class="product-card" data-item-modal="true" data-id="1" data-name="Chicken Dum Biryani"
+              data-price="250.00" data-img="/media/menu/chicken-dum-biryani_dw7NNmw.avif"
+              data-desc="Non-veg"
+              style="cursor: pointer; transition: transform 0.2s;">
+--------------------
+<div class="menu-item-card" data-item-modal="true" data-id="1" data-name="Chicken Dum Biryani"
+                data-price="250.00" data-img="/media/menu/chicken-dum-biryani_dw7NNmw.avif"
+                data-desc="Non-veg">
+--------------------

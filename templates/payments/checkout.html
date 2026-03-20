@@ -1,0 +1,165 @@
+{% extends 'base.html' %}
+
+{% block title %}Checkout | Payment{% endblock %}
+
+{% block content %}
+<div class="container pb-4">
+  <div class="section-card p-4">
+    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+      <div>
+        <h1 class="h4 mb-1">Payment</h1>
+        <div class="text-muted small">Order #{{ order.id }}</div>
+      </div>
+      <div class="text-end">
+        <div class="fw-bold">₹{{ order.total }}</div>
+        <div class="text-muted small">Pay securely via Razorpay (Test Mode)</div>
+      </div>
+    </div>
+
+    <hr />
+
+    <div class="row g-3">
+      <div class="col-lg-7">
+        <div class="product-card p-3">
+          <div class="fw-semibold mb-2">Order items</div>
+          <div class="d-flex flex-column gap-2">
+            {% for item in order.items.all %}
+              <div class="d-flex justify-content-between">
+                <div style="min-width:0;">
+                  <div class="fw-semibold text-truncate">{{ item.name }}</div>
+                  <div class="text-muted small">₹{{ item.unit_price }} × {{ item.quantity }}</div>
+                </div>
+                <div class="fw-semibold">₹{{ item.line_total }}</div>
+              </div>
+            {% endfor %}
+          </div>
+          <hr class="my-3" />
+          <div class="d-flex justify-content-between"><span>Subtotal</span><span>₹{{ order.subtotal }}</span></div>
+          <div class="d-flex justify-content-between"><span>Discount</span><span>- ₹{{ order.discount_total }}</span></div>
+          <div class="d-flex justify-content-between fw-bold mt-2"><span>Total</span><span>₹{{ order.total }}</span></div>
+        </div>
+      </div>
+
+      <div class="col-lg-5">
+        <div class="product-card p-3">
+          <div class="fw-semibold mb-2">Pay now</div>
+          <div class="text-muted small mb-3">
+            Supports UPI, Cards, Netbanking and Wallets.
+          </div>
+
+          <button
+            id="rzpPayBtn"
+            type="button"
+            class="btn btn-brand w-100"
+            data-key-id="{{ razorpay_key_id|default:''|escapejs }}"
+            data-amount="{{ amount_paise|default:'0' }}"
+            data-currency="INR"
+            data-merchant-name="Foodora"
+            data-description="Order #{{ order.id }}"
+            data-razorpay-order-id="{{ payment.razorpay_order_id|default:''|escapejs }}"
+            data-order-id="{{ order.id }}"
+            data-success-url="{{ success_post_url|default:''|escapejs }}"
+            data-failure-url="{{ failure_url|default:''|escapejs }}"
+            data-prefill-name="{{ order.address.full_name|default:''|escapejs }}"
+            data-prefill-email="{{ request.user.email|default:''|escapejs }}"
+            data-prefill-contact="{{ order.address.phone|default:''|escapejs }}"
+          >
+            Pay ₹{{ order.total }}
+          </button>
+
+          <div class="text-muted small mt-3">
+            Demo only. Use Razorpay test credentials.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+  (function () {
+    const payBtn = document.getElementById('rzpPayBtn');
+
+    if (!payBtn) {
+      return;
+    }
+
+    function getCookie(name) {
+      const value = `; ${document.cookie}`;
+      const parts = value.split(`; ${name}=`);
+      if (parts.length === 2) return parts.pop().split(';').shift();
+      return '';
+    }
+
+    const amountPaise = parseInt(payBtn.dataset.amount || '0', 10) || 0;
+    const orderId = parseInt(payBtn.dataset.orderId || '0', 10) || 0;
+    const failureUrl = payBtn.dataset.failureUrl || '/';
+
+    const options = {
+      key: payBtn.dataset.keyId || '',
+      amount: amountPaise,
+      currency: payBtn.dataset.currency || 'INR',
+      name: payBtn.dataset.merchantName || 'Foodora',
+      description: payBtn.dataset.description || '',
+      order_id: payBtn.dataset.razorpayOrderId || '',
+      method: {
+        upi: true,
+        card: true,
+        netbanking: true,
+        wallet: true
+      },
+      prefill: {
+        name: payBtn.dataset.prefillName || '',
+        email: payBtn.dataset.prefillEmail || '',
+        contact: payBtn.dataset.prefillContact || ''
+      },
+      notes: {
+        order_id: String(orderId || '')
+      },
+      theme: {
+        color: (getComputedStyle(document.documentElement).getPropertyValue('--brand-accent').trim() || undefined)
+      },
+      handler: function (response) {
+        fetch(payBtn.dataset.successUrl || '', {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": getCookie('csrftoken')
+          },
+          body: JSON.stringify({
+            order_id: orderId,
+            razorpay_order_id: response.razorpay_order_id,
+            razorpay_payment_id: response.razorpay_payment_id,
+            razorpay_signature: response.razorpay_signature
+          })
+        }).then(r => r.json())
+          .then(data => {
+            if (data && data.redirect_url) {
+              window.location.href = data.redirect_url;
+            } else {
+              window.location.href = failureUrl;
+            }
+          })
+          .catch(() => {
+            window.location.href = failureUrl;
+          });
+      },
+      modal: {
+        ondismiss: function () {
+          window.location.href = failureUrl;
+        }
+      }
+    };
+
+    payBtn.addEventListener('click', function () {
+      try {
+        const rzp = new Razorpay(options);
+        rzp.open();
+      } catch (e) {
+        window.location.href = failureUrl;
+      }
+    });
+  })();
+</script>
+{% endblock %}

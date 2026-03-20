@@ -1,0 +1,254 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Home | Foodora{% endblock %}
+
+{% block content %}
+<div class="pb-0">
+
+  <!-- Hero Section -->
+  <div class="hero shadow-sm">
+    <div class="container">
+      <div class="row align-items-center">
+        <div class="col-lg-6 position-relative z-1 py-4">
+          <h1 class="display-4 fw-bold mb-3" style="line-height: 1.15; letter-spacing: -1px;">Delicious
+            Meals<br />Delivered Fast!</h1>
+          <p class="fs-5 mb-4" style="color: rgba(255,255,255,0.9); font-weight: 500;">Satisfy your hunger with
+            freshly<br />prepared dishes from our kitchen.</p>
+
+          <div class="hero-offer mb-4">
+            Special Offer — <b>Get 20% OFF</b> on your first order
+          </div>
+          <br />
+          <a class="btn-brand-pill px-4 py-2 mt-2" style="font-size: 1.1rem; box-shadow: 0 4px 15px rgba(0,0,0,0.2);"
+            href="{% url 'menu:list' %}">ORDER NOW</a>
+        </div>
+        <div class="col-lg-6 position-relative z-1 d-flex justify-content-end">
+          {% if hero_item and hero_item.image %}
+          <img src="{{ hero_item.image.url }}" alt="{{ hero_item.name }}" class="rounded-circle"
+            style="width: 100%; max-width: 450px; aspect-ratio: 1; object-fit: cover; border: 15px solid rgba(255,255,255,0.1); box-shadow: 0 20px 40px rgba(0,0,0,0.3);" />
+          {% else %}
+          <div class="rounded-circle d-flex align-items-center justify-content-center"
+            style="width: 100%; max-width: 450px; aspect-ratio: 1; background: rgba(255,255,255,0.08); border: 15px solid rgba(255,255,255,0.1); box-shadow: 0 20px 40px rgba(0,0,0,0.3);">
+            <i class="fa-solid fa-bowl-food" style="font-size: 64px; color: rgba(255,255,255,0.75);"></i>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main White Curved Body Overlay -->
+  <div class="main-content-bg">
+    <div class="container pb-5">
+
+      <!-- Menu Categories -->
+      <div class="mb-5">
+        <h2 class="section-title h2">Menu</h2>
+        <p class="text-muted fs-6 mb-4 fw-medium">What would you like to eat today?</p>
+
+        <div class="cat-card-group">
+          {% for c in categories|slice:':6' %}
+          <a href="{% url 'menu:category' c.id %}" class="cat-card">
+            <i
+              class="fa-solid {% if 'biryani' in c.name|lower %}fa-bowl-rice{% elif 'burg' in c.name|lower %}fa-burger{% elif 'frie' in c.name|lower %}fa-fire{% elif 'meal' in c.name|lower %}fa-plate-wheat{% elif 'pizza' in c.name|lower %}fa-pizza-slice{% elif 'stat' in c.name|lower or 'start' in c.name|lower %}fa-martini-glass-citrus{% else %}fa-utensils{% endif %} cat-icon"></i>
+            {{ c.name|upper }}
+          </a>
+          {% empty %}
+          <div class="text-muted">No categories yet. Add categories from the admin panel.</div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Bestsellers -->
+      <div class="mb-5 pb-3">
+        <div class="d-flex justify-content-between align-items-end mb-4">
+          <h2 class="section-title h3 m-0">Bestsellers from Our Kitchen</h2>
+          <a class="btn-brand-pill shadow-sm" style="font-size: 0.8rem; padding: 6px 16px;"
+            href="{% url 'menu:list' %}">VIEW ALL MENU</a>
+        </div>
+
+        <div class="row g-4 mb-5">
+          {% for item in bestsellers|slice:':4' %}
+          <div class="col-md-6 col-lg-3">
+            <div class="product-card" data-item-modal="true" data-id="{{ item.id }}" data-name="{{ item.name }}"
+              data-price="{{ item.price }}" data-img="{% if item.image %}{{ item.image.url }}{% endif %}"
+              data-desc="{{ item.description|default:'Fresh ingredients, carefully prepared' }}"
+              style="cursor: pointer; transition: transform 0.2s;">
+              <div class="product-img-wrapper">
+                {% if item.image %}
+                <img src="{{ item.image.url }}" alt="{{ item.name }}" />
+                {% else %}
+                <div class="bg-light w-100 rounded-circle d-flex align-items-center justify-content-center"
+                  style="height:150px; width:150px!important; margin:0 auto; box-shadow:inset 0 4px 10px rgba(0,0,0,0.05);">
+                  <i class="fa-solid fa-image text-muted fs-1"></i>
+                </div>
+                {% endif %}
+              </div>
+              <div class="p-3 d-flex flex-column flex-grow-1">
+                <h5 class="fw-bold fs-6 mb-1 text-truncate">{{ item.name }}</h5>
+                <div class="d-flex flex-column mb-2">
+                  <h4 class="fw-bolder m-0" style="color: var(--brand-text);">₹{{ item.price }}</h4>
+                  <div class="text-muted small mt-1">
+                    {% if item.review_count|default:0 %}
+                    <i class="fa-solid fa-star text-warning" style="font-size: 10px;"></i>
+                    <span style="font-size: 11px; margin-left: 4px;">{{ item.avg_rating|floatformat:1 }}/5 · {{
+                      item.review_count }} reviews</span>
+                    {% else %}
+                    <span style="font-size: 11px;">No ratings yet</span>
+                    {% endif %}
+                  </div>
+                </div>
+                <div class="text-muted mb-3 flex-grow-1" style="font-size: 0.65rem; opacity: 0.6;">
+                  Fresh ingredients, carefully prepared<br />Free Delivery Available
+                </div>
+
+                <div class="text-end mt-auto border-top pt-2">
+                  <button class="btn-brand-pill shadow-sm ms-auto" type="button" title="Quick View"
+                    style="font-size: 0.8rem; padding: 6px 14px;">
+                    <i class="fa-solid fa-plus me-1"></i> Add
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          {% empty %}
+          <div class="col-12">
+            <div class="text-muted">No items yet.</div>
+          </div>
+          {% endfor %}
+        </div>
+
+        <div class="text-center mt-2">
+          <a class="btn-brand-pill px-5 py-2 fs-6 shadow-sm" href="{% url 'menu:list' %}">VIEW ALL MENU</a>
+        </div>
+      </div>
+
+      <!-- Our Promise -->
+      <div class="row g-5 align-items-center mt-3 pt-3">
+        <div class="col-lg-6">
+          <h2 class="section-title h2 mb-2">Our Promise</h2>
+          <p class="fs-6 text-muted mb-5 fw-medium">Fresh ingredients, fast delivery, and amazing taste.</p>
+
+          <div class="row text-center g-4 mb-5">
+            <div class="col-4">
+              <div class="promise-icon-shell">
+                <i class="fa-solid fa-truck-fast"></i>
+              </div>
+              <h6 class="fw-bold mb-1 brand-accent-text" style="font-size: 0.85rem; letter-spacing: 0.5px;">
+                FAST<br />DELIVERY</h6>
+              <div class="text-muted" style="font-size: 0.75rem;">Delivered within<br />30 minutes</div>
+            </div>
+            <div class="col-4">
+              <div class="promise-icon-shell">
+                <i class="fa-solid fa-leaf"></i>
+              </div>
+              <h6 class="fw-bold mb-1 brand-accent-text" style="font-size: 0.85rem; letter-spacing: 0.5px;">
+                FRESH<br />INGREDIENTS</h6>
+              <div class="text-muted" style="font-size: 0.75rem;">Only high quality<br />fresh ingredients</div>
+            </div>
+            <div class="col-4">
+              <div class="promise-icon-shell">
+                <i class="fa-solid fa-fire-burner"></i>
+              </div>
+              <h6 class="fw-bold mb-1 brand-accent-text" style="font-size: 0.85rem; letter-spacing: 0.5px;">
+                EXPERT<br />CHEFS</h6>
+              <div class="text-muted" style="font-size: 0.75rem;">Prepared by<br />experienced chefs</div>
+            </div>
+          </div>
+
+          <div class="subscribe-box shadow-sm mb-4">
+            <input type="email" placeholder="Enter your email address" />
+            <button class="btn-brand-pill px-4 m-1 shadow-sm">SUBSCRIBE</button>
+          </div>
+        </div>
+
+        <div class="col-lg-6">
+          <div class="row g-3">
+            <div class="col-12">
+              {% if collage_items|length >= 1 and collage_items.0.image %}
+              <img src="{{ collage_items.0.image.url }}" class="collage-img shadow-sm" style="height: 240px;"
+                alt="{{ collage_items.0.name }}" />
+              {% else %}
+              <div class="collage-img shadow-sm d-flex align-items-center justify-content-center"
+                style="height: 240px; background: rgba(0,0,0,0.03);">
+                <i class="fa-solid fa-image text-muted fs-1"></i>
+              </div>
+              {% endif %}
+            </div>
+            <div class="col-6">
+              {% if collage_items|length >= 2 and collage_items.1.image %}
+              <img src="{{ collage_items.1.image.url }}" class="collage-img shadow-sm" style="height: 160px;"
+                alt="{{ collage_items.1.name }}" />
+              {% else %}
+              <div class="collage-img shadow-sm d-flex align-items-center justify-content-center"
+                style="height: 160px; background: rgba(0,0,0,0.03);">
+                <i class="fa-solid fa-image text-muted fs-1"></i>
+              </div>
+              {% endif %}
+            </div>
+            <div class="col-6">
+              {% if collage_items|length >= 3 and collage_items.2.image %}
+              <img src="{{ collage_items.2.image.url }}" class="collage-img shadow-sm" style="height: 160px;"
+                alt="{{ collage_items.2.name }}" />
+              {% else %}
+              <div class="collage-img shadow-sm d-flex align-items-center justify-content-center"
+                style="height: 160px; background: rgba(0,0,0,0.03);">
+                <i class="fa-solid fa-image text-muted fs-1"></i>
+              </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- ALTERNATING FEATURE SECTIONS -->
+      <div class="mt-5 pt-5 border-top" style="border-color: rgba(0,0,0,0.05) !important;">
+        
+        <!-- Section 1 -->
+      <div class="row align-items-center mb-5 pb-4">
+        <div class="col-lg-6 mb-4 mb-lg-0 pe-lg-5">
+          <img src="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Guests" class="w-100 shadow-sm" style="border-radius: var(--border-radius-xl); aspect-ratio: 4/4; object-fit: cover;">
+        </div>
+        <div class="col-lg-6 ps-lg-4">
+          <h2 class="fw-bold mb-3" style="color: var(--brand-accent); letter-spacing: -0.5px; font-size: 2.2rem;">Banana Leaf Special Guests enjoying !</h2>
+          <p class="fs-6" style="color: var(--brand-text); line-height: 1.8; opacity: 0.9;">
+            Nothing makes us happier than seeing our guests smile over a fresh banana-leaf meal. At Foodora, we bring back the authentic dining experience — serving traditional dishes on banana leaves, just the way it's meant to be enjoyed.
+          </p>
+          <a href="{% url 'menu:list' %}" class="btn-brand-pill mt-3 px-4 py-2" style="font-size: 1.1rem; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">Order online <i class="fa-solid fa-chevron-right ms-2 small"></i></a>
+        </div>
+      </div>
+
+      <!-- Section 2 -->
+      <div class="row align-items-center flex-column-reverse flex-lg-row mb-5 pb-4">
+        <div class="col-lg-6 pe-lg-5 mt-4 mt-lg-0">
+          <h2 class="fw-bold mb-3" style="color: var(--brand-accent); letter-spacing: -0.5px; font-size: 2.2rem;">Casual, Cozy, and Flavorful</h2>
+          <p class="fs-6" style="color: var(--brand-text); line-height: 1.8; opacity: 0.9;">
+            Step into a warm, relaxed atmosphere perfect for individual meals, family dinners, or group dining. Our menu balances classic and fusion dishes, ensuring variety without complexity, while our attentive staff makes every visit enjoyable.
+          </p>
+          <a href="{% url 'menu:contact' %}" class="btn-brand-pill mt-3 px-4 py-2" style="font-size: 1.1rem; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">Dine With Us <i class="fa-solid fa-chevron-right ms-2 small"></i></a>
+        </div>
+        <div class="col-lg-6 mb-4 mb-lg-0 ps-lg-4">
+          <img src="https://images.unsplash.com/photo-1555396273-367ea4eb4db5?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Dining" class="w-100 shadow-sm" style="border-radius: var(--border-radius-xl); aspect-ratio: 4/4; object-fit: cover;">
+        </div>
+      </div>
+
+      <!-- Section 3 -->
+      <div class="row align-items-center">
+        <div class="col-lg-6 mb-4 mb-lg-0 pe-lg-5">
+          <img src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Catering Guests" class="w-100 shadow-sm" style="border-radius: var(--border-radius-xl); aspect-ratio: 4/4; object-fit: cover;">
+        </div>
+        <div class="col-lg-6 ps-lg-4">
+          <h2 class="fw-bold mb-3" style="color: var(--brand-accent); letter-spacing: -0.5px; font-size: 2.2rem;">Bring Foodora to Your Event</h2>
+          <p class="fs-6" style="color: var(--brand-text); line-height: 1.8; opacity: 0.9;">
+            Planning a party, corporate lunch, or celebration? Foodora offers full-service catering with South Indian and Indo-Chinese specialties that impress every guest.
+          </p>
+          <a href="{% url 'menu:contact' %}" class="btn-brand-pill mt-3 px-4 py-2" style="font-size: 1.1rem; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">Cater With Us <i class="fa-solid fa-chevron-right ms-2 small"></i></a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+</div>
+{% endblock %}

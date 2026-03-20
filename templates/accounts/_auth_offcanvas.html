@@ -1,0 +1,96 @@
+{# Expects: login_form, register_form, mode ('login'|'signup'), show (bool) #}
+<div class="offcanvas offcanvas-end" tabindex="-1" id="authOffcanvas" aria-labelledby="authOffcanvasLabel">
+  <div class="offcanvas-header border-bottom" style="border-color: rgba(174, 49, 49, 0.15) !important;">
+    <div class="d-flex align-items-center gap-2">
+      <div class="rounded-circle d-flex align-items-center justify-content-center"
+        style="width:36px; height:36px; background: rgba(174, 49, 49, 0.10); color: var(--brand-accent);">
+        <i class="fa-solid fa-user"></i>
+      </div>
+      <div>
+        <div class="fw-bold" id="authOffcanvasLabel">Account</div>
+        <div class="text-muted small">Login or create account</div>
+      </div>
+    </div>
+    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+  </div>
+
+  <div class="offcanvas-body">
+    <div class="d-flex justify-content-between align-items-start mb-3">
+      <div>
+        <h2 class="h4 fw-bold mb-1" data-auth-title>Login</h2>
+        <div class="text-muted">
+          <span data-auth-subtitle>or create an account</span>
+        </div>
+      </div>
+    </div>
+
+    <div data-auth-pane="login">
+      <form method="post" action="{% url 'accounts:login' %}">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ request.get_full_path }}" data-auth-next>
+
+        {{ login_form.non_field_errors }}
+        <div class="mb-3">
+          <label class="form-label">Email</label>
+          {{ login_form.username }}
+          {{ login_form.username.errors }}
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Password</label>
+          {{ login_form.password }}
+          {{ login_form.password.errors }}
+        </div>
+
+        <button class="btn btn-brand w-100" type="submit">Login</button>
+        <button class="btn btn-link w-100 mt-2 text-decoration-none" type="button" data-auth-switch="signup">
+          Have no account? <span class="text-brand">Sign up</span>
+        </button>
+      </form>
+    </div>
+
+    <div data-auth-pane="signup" style="display:none;">
+      <form method="post" action="{% url 'accounts:register' %}">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ request.get_full_path }}" data-auth-next>
+
+        {{ register_form.non_field_errors }}
+        <div class="mb-3">
+          <label class="form-label">Email</label>
+          {{ register_form.email }}
+          {{ register_form.email.errors }}
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Phone (optional)</label>
+          {{ register_form.phone }}
+          {{ register_form.phone.errors }}
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Password</label>
+          {{ register_form.password1 }}
+          {{ register_form.password1.errors }}
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Confirm password</label>
+          {{ register_form.password2 }}
+          {{ register_form.password2.errors }}
+        </div>
+
+        <button class="btn btn-brand w-100" type="submit">Continue</button>
+        <button class="btn btn-link w-100 mt-2 text-decoration-none" type="button" data-auth-switch="login">
+          Already have an account? <span class="text-brand">Login</span>
+        </button>
+      </form>
+    </div>
+
+    <div class="mt-3 small text-muted">
+      By continuing, you accept the <span class="text-brand">Terms &amp; Conditions</span> &amp; <span class="text-brand">Privacy Policy</span>.
+    </div>
+  </div>
+</div>
+
+{% if show %}
+<script>
+  window.__AUTH_SIDEBAR_OPEN__ = true;
+  window.__AUTH_SIDEBAR_MODE__ = "{{ mode|default:'login' }}";
+</script>
+{% endif %}

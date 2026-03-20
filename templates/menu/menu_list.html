@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+
+{% block title %}Menu | Foodora{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0 px-md-4 pb-4">
+  <div class="row g-4">
+    <div class="col-12 col-lg-3">
+      <div class="section-card p-3 menu-sidebar position-sticky" style="top: 100px; z-index: 10;">
+        <div class="d-flex justify-content-between align-items-end mb-2">
+          <div>
+            <div class="fw-bold">Search menu</div>
+            <div class="text-muted small">Find items fast</div>
+          </div>
+        </div>
+
+        <form method="get" class="d-grid gap-2">
+          <input class="form-control" name="q" value="{{ filters.q }}" placeholder="Search menu" />
+          <div class="d-flex gap-2">
+            <input class="form-control" name="min_price" value="{{ filters.min_price }}" placeholder="Min ₹" />
+            <input class="form-control" name="max_price" value="{{ filters.max_price }}" placeholder="Max ₹" />
+          </div>
+        </form>
+
+        <hr class="my-3" />
+
+        <div class="menu-sidebar-list">
+          {% for c in categories %}
+          <a href="#cat-{{ c.id }}" class="menu-category-link" data-menu-cat-link="cat-{{ c.id }}">
+            {{ c.name }}
+          </a>
+          {% empty %}
+          <div class="text-muted small">No categories yet.</div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 col-lg-9">
+      <div class="section-card p-4">
+        <div class="d-flex justify-content-between align-items-end flex-wrap gap-2 mb-3">
+          <div>
+            <h1 class="h3 mb-0">Menu</h1>
+            <div class="text-muted">Items from admin panel</div>
+          </div>
+        </div>
+
+        {% for category, items in items_by_category %}
+        <div class="menu-section" id="cat-{{ category.id }}">
+          <h2 class="h5 fw-bold mb-3" style="color: var(--brand-accent);">{{ category.name }}</h2>
+          <div class="row g-3">
+            {% for item in items %}
+            <div class="col-12 col-md-6 col-xl-4">
+              <div class="menu-item-card" data-item-modal="true" data-id="{{ item.id }}" data-name="{{ item.name }}"
+                data-price="{{ item.price }}" data-img="{% if item.image %}{{ item.image.url }}{% endif %}"
+                data-desc="{{ item.description|default:'Fresh ingredients, carefully prepared' }}">
+                <div class="menu-item-card-body">
+                  <div class="fw-bold mb-1">{{ item.name }}</div>
+                  <div class="fw-semibold mb-2">₹{{ item.price }}</div>
+                  {% if item.description %}
+                  <div class="text-muted small menu-item-desc">{{ item.description }}</div>
+                  {% endif %}
+                </div>
+
+                <div class="menu-item-card-media">
+                  {% if item.image %}
+                  <img src="{{ item.image.url }}" alt="{{ item.name }}" />
+                  {% else %}
+                  <div class="menu-item-img-placeholder">
+                    <i class="fa-solid fa-image text-muted"></i>
+                  </div>
+                  {% endif %}
+                  <button class="add-btn menu-item-plus" type="button" aria-label="Add">
+                    <i class="fa-solid fa-plus"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  (function () {
+    var links = Array.prototype.slice.call(document.querySelectorAll('[data-menu-cat-link]'));
+    if (!links.length) return;
+    var sections = links
+      .map(function (a) { return document.getElementById(a.getAttribute('data-menu-cat-link')); })
+      .filter(Boolean);
+    if (!sections.length) return;
+
+    function setActive(id) {
+      links.forEach(function (a) {
+        a.classList.toggle('is-active', a.getAttribute('data-menu-cat-link') === id);
+      });
+    }
+
+    // Smooth scroll on click
+    document.addEventListener('click', function (e) {
+      var a = e.target.closest('[data-menu-cat-link]');
+      if (!a) return;
+      var id = a.getAttribute('data-menu-cat-link');
+      var el = document.getElementById(id);
+      if (!el) return;
+      e.preventDefault();
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      setActive(id);
+    });
+
+    // Auto-highlight while scrolling
+    var observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          setActive(entry.target.id);
+        }
+      });
+    }, { root: null, threshold: 0.2 });
+
+    sections.forEach(function (s) { observer.observe(s); });
+    setActive(sections[0].id);
+  })();
+</script>
+{% endblock %}

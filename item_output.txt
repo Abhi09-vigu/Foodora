@@ -1,0 +1,5 @@
+Name: Chicken Dum Biryani
+Price: 250.00
+Image: /media/menu/chicken-dum-biryani_dw7NNmw.avif
+Description: Non-veg
+--------------------

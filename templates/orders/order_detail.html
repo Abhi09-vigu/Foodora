@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+
+{% block title %}Order #{{ order.id }} | Foodora{% endblock %}
+
+{% block content %}
+<div class="container pb-4" style="max-width:1100px;">
+  <div class="section-card p-4">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+      <div>
+        <h1 class="h4 mb-0">Order #{{ order.id }}</h1>
+        <div class="text-muted">Status: <span class="fw-semibold">{{ order.get_status_display }}</span> · {% if order.is_paid %}Paid{% else %}Unpaid{% endif %}</div>
+      </div>
+      <div class="d-flex gap-2">
+        <a class="btn btn-outline-secondary" href="{% url 'orders:invoice' order.id %}">Invoice</a>
+        {% if not order.is_paid %}
+          <a class="btn btn-brand" href="{% url 'payments:payment_with_id' order.id %}">Pay now</a>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="row g-3">
+      <div class="col-lg-7">
+        <div class="product-card p-3">
+          <div class="fw-semibold mb-2">Items</div>
+          {% for it in order.items.all %}
+            <div class="d-flex justify-content-between mb-1">
+              <div>{{ it.name }} <span class="text-muted">x{{ it.quantity }}</span></div>
+              <div class="fw-semibold">₹{{ it.line_total }}</div>
+            </div>
+          {% endfor %}
+          <hr />
+          <div class="d-flex justify-content-between"><span>Subtotal</span><span>₹{{ order.subtotal }}</span></div>
+          <div class="d-flex justify-content-between"><span>Discount</span><span>- ₹{{ order.discount_total }}</span></div>
+          <div class="d-flex justify-content-between fw-bold"><span>Total</span><span>₹{{ order.total }}</span></div>
+        </div>
+      </div>
+      <div class="col-lg-5">
+        <div class="product-card p-3 mb-2">
+          <div class="fw-semibold">Delivery address</div>
+          <div class="text-muted small">{{ order.address.full_name }} · {{ order.address.phone }}</div>
+          <div>{{ order.address.line1 }}{% if order.address.line2 %}, {{ order.address.line2 }}{% endif %}</div>
+          <div>{{ order.address.city }}, {{ order.address.state }} - {{ order.address.pincode }}</div>
+        </div>
+
+        <div class="product-card p-3">
+          <div class="fw-semibold mb-2">Actions</div>
+          <div class="d-flex flex-wrap gap-2">
+            {% if order.status != 'CANCELLED' and order.status != 'DELIVERED' %}
+              <form method="post" action="{% url 'orders:cancel' order.id %}">
+                {% csrf_token %}
+                <button class="btn btn-outline-danger" type="submit">Cancel order</button>
+              </form>
+            {% endif %}
+
+            {% if order.status == 'DELIVERED' and not order.return_requested %}
+              <form method="post" action="{% url 'orders:return' order.id %}">
+                {% csrf_token %}
+                <button class="btn btn-outline-secondary" type="submit">Request return</button>
+              </form>
+            {% elif order.return_requested %}
+              <span class="badge text-bg-warning">Return requested</span>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

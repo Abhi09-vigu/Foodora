@@ -1,0 +1,21 @@
+{% extends 'adminpanel/base.html' %}
+
+{% block title %}Customers{% endblock %}
+
+{% block content %}
+  <div class="section-card p-4">
+    <h1 class="h4 mb-3">Customers</h1>
+    <div class="table-responsive">
+      <table class="table align-middle">
+        <thead><tr><th>Email</th><th>Phone</th><th>Joined</th></tr></thead>
+        <tbody>
+          {% for u in customers %}
+            <tr><td class="fw-semibold">{{ u.email }}</td><td>{{ u.phone|default:'-' }}</td><td class="text-muted small">{{ u.date_joined }}</td></tr>
+          {% empty %}
+            <tr><td colspan="3" class="text-muted">No customers yet.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+{% endblock %}

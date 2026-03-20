@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+
+{% block title %}Login | Foodora{% endblock %}
+
+{% block content %}
+<div class="container pb-4 pt-5">
+  <div class="row justify-content-center">
+    <div class="col-12 col-md-6 col-lg-5">
+      <div class="section-card p-4">
+        <div class="text-center mb-4">
+          <div class="rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3"
+            style="width:50px; height:50px; background: rgba(174, 49, 49, 0.10); color: var(--brand-accent);">
+            <i class="fa-solid fa-user fs-4"></i>
+          </div>
+          <h2 class="h3 fw-bold mb-1">Login</h2>
+          <div class="text-muted">or create an account</div>
+        </div>
+
+        <form method="post" action="{% url 'accounts:login' %}">
+          {% csrf_token %}
+          <input type="hidden" name="next" value="{{ next|default:'' }}">
+
+          {{ form.non_field_errors }}
+          <div class="mb-3">
+            <label class="form-label">Email</label>
+            {{ form.username }}
+            {{ form.username.errors }}
+          </div>
+          <div class="mb-4">
+            <label class="form-label">Password</label>
+            <div class="input-group">
+              {{ form.password }}
+              <button class="btn btn-outline-secondary toggle-password" type="button" style="border-color: #dee2e6;">
+                <i class="fa-solid fa-eye"></i>
+              </button>
+            </div>
+            {{ form.password.errors }}
+          </div>
+
+          <button class="btn btn-brand w-100" type="submit">Login</button>
+          <a class="btn btn-link w-100 mt-2 text-decoration-none" href="{% url 'accounts:register' %}{% if next %}?next={{ next|urlencode }}{% endif %}">
+            Have no account? <span class="text-brand">Sign up</span>
+          </a>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.querySelectorAll('.toggle-password').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var input = this.previousElementSibling;
+      var icon = this.querySelector('i');
+      if (input.type === 'password') {
+        input.type = 'text';
+        icon.classList.remove('fa-eye');
+        icon.classList.add('fa-eye-slash');
+      } else {
+        input.type = 'password';
+        icon.classList.remove('fa-eye-slash');
+        icon.classList.add('fa-eye');
+      }
+    });
+  });
+</script>
+{% endblock %}

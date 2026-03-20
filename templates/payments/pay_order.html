@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+{% block title %}Pay | Foodora{% endblock %}
+
+{% block content %}
+<div class="container pb-4" style="max-width:880px;">
+  <div class="section-card p-4">
+    <h1 class="h4 mb-3">Payment (Demo)</h1>
+    <div class="product-card p-3 mb-3">
+      <div class="d-flex justify-content-between">
+        <div>
+          <div class="fw-semibold">Order #{{ order.id }}</div>
+          <div class="text-muted small">Amount payable</div>
+        </div>
+        <div class="display-6 fw-bold">₹{{ order.total }}</div>
+      </div>
+    </div>
+
+    <form method="post">
+      {% csrf_token %}
+      <div class="product-card p-3 mb-3">
+        <div class="fw-semibold mb-2">Choose method</div>
+        <div class="form-check">
+          <input class="form-check-input" type="radio" name="method" id="m1" value="CARD" checked>
+          <label class="form-check-label" for="m1">Card</label>
+        </div>
+        <div class="form-check">
+          <input class="form-check-input" type="radio" name="method" id="m2" value="UPI">
+          <label class="form-check-label" for="m2">UPI</label>
+        </div>
+        <div class="form-check">
+          <input class="form-check-input" type="radio" name="method" id="m3" value="WALLET">
+          <label class="form-check-label" for="m3">Wallet</label>
+        </div>
+      </div>
+      <button class="btn btn-brand" type="submit">Pay now (simulated)</button>
+      <a class="btn btn-outline-secondary" href="{% url 'orders:detail' order.id %}">Back</a>
+    </form>
+
+    <div class="text-muted small mt-3">This is a Razorpay-style demo flow. It always succeeds.</div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+
+{% block title %}Contact us | Foodora{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row align-items-center bg-white rounded-4 shadow-sm overflow-hidden" style="border: 1px solid rgba(0,0,0,0.05);">
+    <div class="col-md-6 p-0 d-none d-md-block">
+      <img src="https://images.unsplash.com/photo-1555396273-367ea4eb4db5?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80" alt="Contact Us" class="img-fluid w-100 h-100 object-fit-cover" style="min-height: 500px;">
+    </div>
+    <div class="col-md-6 p-5">
+      <h1 class="h3 fw-bold mb-2">Contact us</h1>
+      <p class="text-muted mb-4">We'd love to hear from you. Please fill out the form below.</p>
+      
+      <form action="" method="POST">
+        {% csrf_token %}
+        <div class="mb-3">
+          <label for="name" class="form-label fw-semibold">Name</label>
+          <input type="text" class="form-control form-control-lg bg-light border-0" id="name" name="name" placeholder="John Doe" pattern="[A-Za-z\s]+" oninput="this.value = this.value.replace(/[^A-Za-z\s]/g, '')" required>
+        </div>
+        
+        <div class="mb-3">
+          <label for="phone" class="form-label fw-semibold">Phone Number</label>
+          <input type="tel" class="form-control form-control-lg bg-light border-0" id="phone" name="phone" placeholder="+1 (555) 000-0000" pattern="[0-9+]+" oninput="this.value = this.value.replace(/[^0-9+]/g, '')" required>
+        </div>
+        
+        <div class="mb-4">
+          <label for="email" class="form-label fw-semibold">Email</label>
+          <input type="email" class="form-control form-control-lg bg-light border-0" id="email" name="email" placeholder="john@example.com" required>
+        </div>
+        
+        <button type="submit" class="btn btn-lg w-100 fw-bold" style="background-color: var(--brand-accent); color: white; border-radius: 50px;">
+          Send Enquire
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

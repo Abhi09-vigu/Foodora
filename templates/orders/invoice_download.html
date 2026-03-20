@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{{ order.invoice_number }}</title>
+  <style>
+    body{font-family:system-ui, -apple-system, Segoe UI, Roboto, Arial; padding:24px;}
+    table{width:100%; border-collapse:collapse; margin-top:16px;}
+    th,td{border:1px solid #ddd; padding:10px; text-align:left;}
+    th{background:#f6f6f6;}
+  </style>
+</head>
+<body>
+  <h2>Invoice</h2>
+  <div><strong>Invoice:</strong> {{ order.invoice_number }}</div>
+  <div><strong>Order:</strong> #{{ order.id }}</div>
+  <div><strong>Date:</strong> {{ generated_at }}</div>
+  <hr />
+
+  <h3>Ship to</h3>
+  <div>{{ order.address.full_name }} ({{ order.address.phone }})</div>
+  <div>{{ order.address.line1 }}{% if order.address.line2 %}, {{ order.address.line2 }}{% endif %}</div>
+  <div>{{ order.address.city }}, {{ order.address.state }} - {{ order.address.pincode }}</div>
+
+  <h3>Items</h3>
+  <table>
+    <thead><tr><th>Item</th><th>Qty</th><th>Unit</th><th>Total</th></tr></thead>
+    <tbody>
+      {% for it in order.items.all %}
+        <tr>
+          <td>{{ it.name }}</td>
+          <td>{{ it.quantity }}</td>
+          <td>₹{{ it.unit_price }}</td>
+          <td>₹{{ it.line_total }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <h3>Totals</h3>
+  <div>Subtotal: ₹{{ order.subtotal }}</div>
+  <div>Discount: ₹{{ order.discount_total }}</div>
+  <div><strong>Total: ₹{{ order.total }}</strong></div>
+</body>
+</html>

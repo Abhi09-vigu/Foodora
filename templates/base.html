@@ -1,0 +1,345 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{% block title %}Foodora{% endblock %}</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw=="
+    crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="{% static 'css/site.css' %}?v={% now 'U' %}" rel="stylesheet" />
+</head>
+
+<body>
+
+  <nav class="navbar navbar-expand-lg main-navbar py-3">
+    <div class="container-fluid px-3 px-lg-4">
+      <a class="navbar-brand m-0" href="{% url 'menu:home' %}">
+        <i class="fa-solid fa-hamburger"></i> Foodora
+      </a>
+
+      <button class="navbar-toggler border-0 me-3" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar"
+        aria-controls="mainNavbar" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div class="collapse navbar-collapse justify-content-end" id="mainNavbar">
+        <ul class="navbar-nav align-items-lg-center gap-lg-4 fw-semibold me-lg-3">
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'menu:list' %}">Menu</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'menu:catering' %}">Catering</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'menu:our_story' %}">Our Story</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'menu:contact' %}">Contact us</a>
+          </li>
+        </ul>
+
+        <div class="d-flex align-items-center gap-2">
+          <a class="btn btn-link position-relative px-2" href="{% url 'cart:detail' %}"
+            data-bs-toggle="offcanvas" data-bs-target="#cartOffcanvas" aria-controls="cartOffcanvas"
+            aria-label="Cart">
+            <i class="fa-solid fa-bag-shopping"></i>
+            {% if cart_count %}
+            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-brand"
+              style="font-size:10px;">
+              {{ cart_count }}
+            </span>
+            {% endif %}
+          </a>
+
+          {% if user.is_authenticated %}
+          <a class="btn btn-outline-brand" href="{% url 'accounts:profile' %}">Account</a>
+          {% else %}
+          <a class="btn btn-outline-brand" href="{% url 'accounts:login' %}">Sign in</a>
+          {% endif %}
+
+          <a class="btn-brand-pill" href="{% url 'menu:list' %}">
+            Order online <i class="fa-solid fa-chevron-right ms-1 small"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container">
+    {% if messages %}
+    <div class="mt-2">
+      {% for message in messages %}
+      <div class="alert alert-{{ message.tags }} mb-2" role="alert">{{ message }}</div>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+
+  {% block content %}{% endblock %}
+
+  <!-- Global Item Modal -->
+  <div class="modal fade" id="itemModal" tabindex="-1" aria-labelledby="itemModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content border-0 shadow" style="border-radius: 12px;">
+        <div class="modal-header border-0 pb-0">
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body pt-0 px-4 pb-4">
+          <div class="text-center mb-3">
+            <div class="mx-auto mb-3 position-relative" style="width: 150px; height: 150px;">
+              <img id="modalItemImage" src="" alt="Item" class="rounded-circle"
+                style="position:absolute; inset:0; width: 150px; height: 150px; object-fit: cover; object-position: center; box-shadow: 0 10px 20px rgba(0,0,0,0.1); display: none;" />
+              <div id="modalItemPlaceholder"
+                class="bg-light rounded-circle align-items-center justify-content-center"
+                style="position:absolute; inset:0; width: 150px; height: 150px; box-shadow: inset 0 4px 10px rgba(0,0,0,0.05); display: none;">
+                <i class="fa-solid fa-image text-muted fs-1"></i>
+              </div>
+            </div>
+            <h4 id="modalItemName" class="fw-bold mb-1"></h4>
+            <h5 id="modalItemPrice" class="fw-bolder" style="color: var(--brand-text);"></h5>
+            <p id="modalItemDesc" class="text-muted small mt-2 mb-0"></p>
+          </div>
+
+          <form id="modalAddToCartForm" method="post" action="">
+            {% csrf_token %}
+            <input type="hidden" name="override" value="false" />
+
+            <div class="d-flex align-items-center justify-content-between bg-light rounded-pill px-3 py-2 mb-4 mx-auto"
+              style="max-width: 150px;">
+              <button type="button" class="btn btn-sm btn-link text-dark text-decoration-none"
+                onclick="document.getElementById('modalQty').stepDown(); document.getElementById('modalQty').dispatchEvent(new Event('change'))">
+                <i class="fa-solid fa-minus"></i>
+              </button>
+              <input type="number" id="modalQty" name="quantity" value="1" min="1"
+                class="form-control border-0 bg-transparent text-center p-0 fw-bold"
+                style="width: 40px; box-shadow: none;">
+              <button type="button" class="btn btn-sm btn-link text-dark text-decoration-none"
+                onclick="document.getElementById('modalQty').stepUp(); document.getElementById('modalQty').dispatchEvent(new Event('change'))">
+                <i class="fa-solid fa-plus"></i>
+              </button>
+            </div>
+
+            <button type="submit" class="btn-brand-pill w-100 py-2 shadow-sm fs-6">
+              Add to Cart - <span id="modalAddTotal"></span>
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  {% block cart_offcanvas %}
+  {% include 'cart/_cart_offcanvas.html' %}
+  {% endblock %}
+
+  <footer class="footer mt-5 pt-0 pb-0" style="background: var(--brand-bg); font-family: 'Inter', system-ui, -apple-system, sans-serif;">
+    <div class="container-fluid px-0">
+      <div class="py-4 py-md-5 shadow-sm w-100" style="background: var(--brand-surface); border-top: 1px solid rgba(0,0,0,0.05); border-bottom: 1px solid rgba(0,0,0,0.05);">
+        <div class="container-fluid px-4 px-lg-5">
+          <div class="row align-items-center mb-4">
+            <!-- Logo -->
+            <div class="col-lg-3 col-md-12 text-center text-lg-start mb-4 mb-lg-0">
+              <div class="d-inline-flex flex-column align-items-center align-items-lg-start">
+                <span class="fw-bold fs-4" style="color: var(--brand-accent); letter-spacing: 1px;"><i class="fa-solid fa-hamburger me-2"></i>Foodora</span>
+              </div>
+            </div>
+            
+            <!-- Links -->
+            <div class="col-lg-6 col-md-12 mb-4 mb-lg-0">
+              <div class="row text-center text-lg-start">
+                <div class="col-4">
+                  <ul class="list-unstyled mb-0 gap-2 d-flex flex-column">
+                    <li><a href="{% url 'menu:list' %}" class="text-decoration-none fw-semibold" style="color: var(--brand-text);">Menu</a></li>
+                    <li><a href="#" class="text-decoration-none fw-semibold" style="color: var(--brand-text);">We're Hiring</a></li>
+                  </ul>
+                </div>
+                <div class="col-4">
+                  <ul class="list-unstyled mb-0 gap-2 d-flex flex-column">
+                    <li><a href="{% url 'menu:catering' %}" class="text-decoration-none fw-semibold" style="color: var(--brand-text);">Catering</a></li>
+                    <li><a href="#" class="text-decoration-none fw-semibold" style="color: var(--brand-text);">Gift Cards</a></li>
+                  </ul>
+                </div>
+                <div class="col-4">
+                  <ul class="list-unstyled mb-0 gap-2 d-flex flex-column">
+                    <li><a href="{% url 'menu:our_story' %}" class="text-decoration-none fw-semibold" style="color: var(--brand-text);">Our Story</a></li>
+                    <li><a href="{% url 'menu:contact' %}" class="text-decoration-none fw-semibold" style="color: var(--brand-text);">Contact Us</a></li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <!-- Order Button -->
+            <div class="col-lg-3 col-md-12 text-center text-lg-end">
+              <a href="{% url 'menu:list' %}" class="btn fw-bold rounded-pill px-4 py-2" style="background-color: var(--brand-accent); color: white;">
+                Order online <i class="fa-solid fa-chevron-right ms-1 small"></i>
+              </a>
+            </div>
+          </div>
+
+          <hr style="border-color: rgba(0,0,0,0.1); margin: 2rem 0;">
+
+          <!-- Bottom part of the card -->
+          <div class="row align-items-center">
+            <div class="col-md-8 d-flex flex-column flex-md-row align-items-center justify-content-center justify-content-md-start mb-3 mb-md-0">
+              <div class="p-1 rounded me-md-3 mb-2 mb-md-0 d-inline-block" style="background: rgba(0,0,0,0.05);">
+                <!-- QR code placeholder -->
+                <img src="https://api.qrserver.com/v1/create-qr-code/?size=60x60&color=4A3A3A&data=https://foodora.com" alt="QR Code" width="60" height="60" style="mix-blend-mode: multiply;">
+              </div>
+              <div class="text-center text-md-start">
+                <div class="text-muted small mb-1">Download our app</div>
+                <div class="fw-bold" style="color: var(--brand-text);">Earn points for free food</div>
+              </div>
+            </div>
+            <div class="col-md-4 text-center text-md-end mt-3 mt-md-0">
+              <a href="#" class="text-muted text-decoration-none small me-4">Terms of Service</a>
+              <a href="#" class="text-muted text-decoration-none small">Accessibility</a>
+            </div>
+          </div>
+          
+          <hr style="border-color: rgba(0,0,0,0.05); margin: 2rem 0 1.5rem 0;">
+
+          <!-- Very bottom strip -->
+          <div class="row align-items-center">
+            <div class="col-md-4 text-center text-md-start mb-3 mb-md-0">
+              <a href="#" class="me-3 text-decoration-none" style="color: var(--brand-text);"><i class="fa-brands fa-facebook-f"></i></a>
+              <a href="#" class="text-decoration-none" style="color: var(--brand-text);"><i class="fa-brands fa-instagram"></i></a>
+            </div>
+            <div class="col-md-4 text-center mb-3 mb-md-0">
+              <span class="text-muted" style="font-size: 0.85rem;">© 2026 FOODORA LLC. All rights reserved.</span>
+            </div>
+            <div class="col-md-4 text-center text-md-end">
+              <span class="border rounded-pill px-3 py-1 text-muted d-inline-flex align-items-center" style="font-size: 0.75rem; border-color: rgba(0,0,0,0.1) !important;">
+                Made with Owner <i class="fa-solid fa-circle ms-2" style="font-size: 0.5rem; color: var(--brand-accent);"></i>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    (function () {
+
+      // Auto open cart panel when URL has ?cart=1
+      try {
+        var params = new URLSearchParams(window.location.search || '');
+        if (params.get('cart') === '1') {
+          var cartEl = document.getElementById('cartOffcanvas');
+          if (cartEl && window.bootstrap && window.bootstrap.Offcanvas) {
+            window.bootstrap.Offcanvas.getOrCreateInstance(cartEl).show();
+          }
+        }
+      } catch (e) { }
+
+      // Item Modal Logic
+      var itemModalEl = document.getElementById('itemModal');
+      if (itemModalEl) {
+        var itemModal = new bootstrap.Modal(itemModalEl);
+
+        document.addEventListener('click', function (e) {
+          var trigger = e.target.closest('[data-item-modal]');
+          if (!trigger) return;
+          e.preventDefault();
+
+          var id = trigger.getAttribute('data-id');
+          var name = trigger.getAttribute('data-name');
+          var price = parseFloat(trigger.getAttribute('data-price'));
+          var img = (trigger.getAttribute('data-img') || '').trim();
+          if (!img || img.toLowerCase() === 'none' || img.toLowerCase() === 'null') {
+            var cardImg = trigger.querySelector('img');
+            img = (cardImg && (cardImg.getAttribute('src') || '') || '').trim();
+          }
+          var desc = trigger.getAttribute('data-desc') || 'Fresh ingredients, carefully prepared';
+
+          document.getElementById('modalItemName').textContent = name;
+          document.getElementById('modalItemPrice').textContent = '₹' + price.toFixed(2);
+          document.getElementById('modalItemDesc').textContent = desc;
+
+          var imgEl = document.getElementById('modalItemImage');
+          var placeholderEl = document.getElementById('modalItemPlaceholder');
+          if (img) {
+            imgEl.src = img;
+            imgEl.style.display = 'block';
+            placeholderEl.style.display = 'none';
+          } else {
+            imgEl.style.display = 'none';
+            placeholderEl.style.display = 'flex';
+          }
+
+          var form = document.getElementById('modalAddToCartForm');
+          form.action = '/cart/add/' + id + '/';
+
+          var qtyInput = document.getElementById('modalQty');
+          qtyInput.value = 1;
+
+          var totalSpan = document.getElementById('modalAddTotal');
+          var updateTotal = function () {
+            totalSpan.textContent = '₹' + (price * parseInt(qtyInput.value || 1)).toFixed(2);
+          };
+          updateTotal();
+          qtyInput.onchange = updateTotal;
+
+          itemModal.show();
+        });
+      }
+
+      // AJAX Add to Cart Logic
+      document.addEventListener('submit', function (e) {
+        if (e.target.id === 'modalAddToCartForm' || e.target.closest('.ajax-cart-form')) {
+          e.preventDefault();
+          var form = e.target.closest('form') || e.target;
+          var formData = new FormData(form);
+          var submitBtn = form.querySelector('button[type="submit"]');
+          var originalText = submitBtn.innerHTML;
+          submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+          submitBtn.disabled = true;
+
+          fetch(form.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+              'X-Requested-With': 'XMLHttpRequest',
+              'X-CSRFToken': formData.get('csrfmiddlewaretoken') || ''
+            }
+          }).then(res => res.json()).then(data => {
+            if (data.success) {
+              var badges = document.querySelectorAll('.badge.bg-brand');
+              badges.forEach(b => b.textContent = data.cart_count);
+              if (itemModalEl) {
+                var instance = bootstrap.Modal.getInstance(itemModalEl);
+                if (instance) instance.hide();
+              }
+
+              // Refresh offcanvas HTML
+              fetch(window.location.href).then(r => r.text()).then(html => {
+                var parser = new DOMParser();
+                var doc = parser.parseFromString(html, 'text/html');
+                var newOffcanvas = doc.getElementById('cartOffcanvas');
+                if (newOffcanvas) {
+                  document.getElementById('cartOffcanvas').innerHTML = newOffcanvas.innerHTML;
+                }
+                var cartEl = document.getElementById('cartOffcanvas');
+                if (cartEl && window.bootstrap && window.bootstrap.Offcanvas) {
+                  window.bootstrap.Offcanvas.getOrCreateInstance(cartEl).show();
+                }
+              });
+            }
+          }).finally(() => {
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+          });
+        }
+      });
+    })();
+  </script>
+</body>
+
+</html>
