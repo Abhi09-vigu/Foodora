@@ -70,7 +70,7 @@ SECRET_KEY = os.getenv(
 )
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = _env_bool("DEBUG", default=True)
+DEBUG = False
 
 _allowed_hosts: set[str] = set(_env_csv("ALLOWED_HOSTS"))
 
