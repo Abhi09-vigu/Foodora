@@ -1,3 +1,5 @@
+import os
+
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.management.base import CommandError
@@ -16,17 +18,31 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        email = (getattr(settings, 'PRIVATE_ADMIN_EMAIL', '') or '').strip()
+        email = (
+            (getattr(settings, 'PRIVATE_ADMIN_EMAIL', '') or '').strip()
+            or (getattr(settings, 'DJANGO_SUPERUSER_EMAIL', '') or '').strip()
+            or (os.getenv('DJANGO_SUPERUSER_EMAIL') or '').strip()
+        )
         if not email:
-            self.stderr.write(self.style.ERROR('settings.PRIVATE_ADMIN_EMAIL is empty'))
+            self.stderr.write(
+                self.style.ERROR(
+                    'Admin email not configured (set PRIVATE_ADMIN_EMAIL or DJANGO_SUPERUSER_EMAIL).'
+                )
+            )
             return
 
         password = options.get('password')
         if not password:
             password = getattr(settings, 'PRIVATE_ADMIN_PASSWORD', '') or ''
         if not password:
+            password = getattr(settings, 'DJANGO_SUPERUSER_PASSWORD', '') or ''
+        if not password:
+            password = os.getenv('DJANGO_SUPERUSER_PASSWORD') or ''
+        if not password:
             if options.get('noinput'):
-                raise CommandError('No password provided (use --password or set PRIVATE_ADMIN_PASSWORD).')
+                raise CommandError(
+                    'No password provided (use --password or set PRIVATE_ADMIN_PASSWORD / DJANGO_SUPERUSER_PASSWORD).'
+                )
             password = self._prompt_password()
 
         User = get_user_model()
