@@ -18,36 +18,58 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        email = (
-            (getattr(settings, 'PRIVATE_ADMIN_EMAIL', '') or '').strip()
-            or (getattr(settings, 'DJANGO_SUPERUSER_EMAIL', '') or '').strip()
-            or (os.getenv('DJANGO_SUPERUSER_EMAIL') or '').strip()
-        )
+        # Preferred (per Railway Variables requirement)
+        email = (os.getenv('ADMIN_EMAIL') or '').strip()
+        username = (os.getenv('ADMIN_USERNAME') or '').strip()
+
+        # Backwards-compatible fallbacks
+        if not email:
+            email = (
+                (getattr(settings, 'PRIVATE_ADMIN_EMAIL', '') or '').strip()
+                or (getattr(settings, 'DJANGO_SUPERUSER_EMAIL', '') or '').strip()
+                or (os.getenv('DJANGO_SUPERUSER_EMAIL') or '').strip()
+            )
+
+        if not username:
+            username = (
+                (getattr(settings, 'DJANGO_SUPERUSER_USERNAME', '') or '').strip()
+                or (os.getenv('DJANGO_SUPERUSER_USERNAME') or '').strip()
+            )
+
         if not email:
             self.stderr.write(
                 self.style.ERROR(
-                    'Admin email not configured (set PRIVATE_ADMIN_EMAIL or DJANGO_SUPERUSER_EMAIL).'
+                    'Admin email not configured (set ADMIN_EMAIL).'
                 )
             )
             return
 
         password = options.get('password')
         if not password:
+            password = os.getenv('ADMIN_PASSWORD') or ''
+
+        # Backwards-compatible fallbacks
+        if not password:
             password = getattr(settings, 'PRIVATE_ADMIN_PASSWORD', '') or ''
         if not password:
             password = getattr(settings, 'DJANGO_SUPERUSER_PASSWORD', '') or ''
         if not password:
             password = os.getenv('DJANGO_SUPERUSER_PASSWORD') or ''
+
         if not password:
             if options.get('noinput'):
                 raise CommandError(
-                    'No password provided (use --password or set PRIVATE_ADMIN_PASSWORD / DJANGO_SUPERUSER_PASSWORD).'
+                    'No password provided (use --password or set ADMIN_PASSWORD).'
                 )
             password = self._prompt_password()
 
         User = get_user_model()
-        defaults = {'username': self._unique_username(User, base='private-admin')}
+        base_username = username or 'admin'
+        defaults = {'username': self._unique_username(User, base=base_username)}
         user, created = User.objects.get_or_create(email=email, defaults=defaults)
+
+        if username:
+            user.username = self._unique_username(User, base=username)
         user.is_staff = True
         user.is_superuser = True
         user.set_password(password)

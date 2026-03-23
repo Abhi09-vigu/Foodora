@@ -8,14 +8,15 @@ echo "Collecting static files..."
 python manage.py collectstatic --noinput
 
 # Create/update a superuser for admin access (idempotent).
-# Configure these in Railway Variables (either style works):
-# - PRIVATE_ADMIN_EMAIL / PRIVATE_ADMIN_PASSWORD
-# - DJANGO_SUPERUSER_EMAIL / DJANGO_SUPERUSER_PASSWORD
-if [[ -n "${PRIVATE_ADMIN_EMAIL:-}" || -n "${DJANGO_SUPERUSER_EMAIL:-}" ]]; then
+# Configure these in Railway Variables (preferred):
+# - ADMIN_EMAIL
+# - ADMIN_PASSWORD
+# - ADMIN_USERNAME (optional)
+if [[ -n "${ADMIN_EMAIL:-}" ]]; then
   echo "Ensuring private admin user exists..."
   python manage.py create_private_admin --noinput
 else
-  echo "No admin email env var set; skipping admin creation."
+  echo "ADMIN_EMAIL not set; skipping admin creation."
 fi
 
 echo "Starting Gunicorn..."
