@@ -13,6 +13,8 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 import os
 from pathlib import Path
 
+from django.core.exceptions import ImproperlyConfigured
+
 try:
     from dotenv import load_dotenv
 except Exception:  # pragma: no cover
@@ -30,12 +32,44 @@ if load_dotenv:
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-6%k=ehoz*k%ricx0!wd7@c@&w*^%=-t6j6-_vburnyp%b(-mty'
+
+
+def _env_bool(name: str, default: bool = False) -> bool:
+    raw = os.getenv(name)
+    if raw is None:
+        return default
+    return raw.strip().lower() in {"1", "true", "t", "yes", "y", "on"}
+
+
+def _env_csv(name: str) -> list[str]:
+    raw = os.getenv(name, "")
+    return [part.strip() for part in raw.split(",") if part.strip()]
+
+
+SECRET_KEY = os.getenv(
+    "SECRET_KEY",
+    "django-insecure-6%k=ehoz*k%ricx0!wd7@c@&w*^%=-t6j6-_vburnyp%b(-mty",
+)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = _env_bool("DEBUG", default=True)
 
-ALLOWED_HOSTS = ['*']
+_allowed_hosts: set[str] = set(_env_csv("ALLOWED_HOSTS"))
+_render_external_hostname = (os.getenv("RENDER_EXTERNAL_HOSTNAME") or "").strip()
+if _render_external_hostname:
+    _allowed_hosts.add(_render_external_hostname)
+
+if DEBUG:
+    ALLOWED_HOSTS = ["*"]
+else:
+    if not _allowed_hosts:
+        raise ImproperlyConfigured(
+            "ALLOWED_HOSTS must be set in production (e.g. set ALLOWED_HOSTS or RENDER_EXTERNAL_HOSTNAME)."
+        )
+    ALLOWED_HOSTS = sorted(_allowed_hosts)
+
+if not DEBUG and SECRET_KEY.startswith("django-insecure") and not os.getenv("SECRET_KEY"):
+    raise ImproperlyConfigured("SECRET_KEY must be set in production.")
 
 
 # Application definition
@@ -60,6 +94,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'restaurant_ecommerce.middleware.PathBasedSessionCookieMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -97,12 +132,26 @@ WSGI_APPLICATION = 'restaurant_ecommerce.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+_sqlite_default_db = {
+    'ENGINE': 'django.db.backends.sqlite3',
+    'NAME': BASE_DIR / 'db.sqlite3',
 }
+
+DATABASES = {'default': _sqlite_default_db}
+
+_database_url = (os.getenv("DATABASE_URL") or "").strip()
+if _database_url:
+    try:
+        import dj_database_url
+    except ImportError as exc:  # pragma: no cover
+        raise ImproperlyConfigured(
+            "DATABASE_URL is set but dj-database-url is not installed. Add it to requirements.txt."
+        ) from exc
+
+    DATABASES['default'] = dj_database_url.parse(
+        _database_url,
+        conn_max_age=int(os.getenv("DB_CONN_MAX_AGE", "600")),
+    )
 
 
 # Password validation
@@ -139,11 +188,12 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-MEDIA_URL = 'media/'
+MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 # Auth
@@ -165,3 +215,17 @@ RAZORPAY_KEY_SECRET = (os.getenv('RAZORPAY_KEY_SECRET') or '').strip()
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+# Security / proxy settings (Render runs behind a proxy)
+if not DEBUG:
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+    SECURE_SSL_REDIRECT = _env_bool("SECURE_SSL_REDIRECT", default=True)
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+
+    _csrf_trusted = set(_env_csv("CSRF_TRUSTED_ORIGINS"))
+    if _render_external_hostname:
+        _csrf_trusted.add(f"https://{_render_external_hostname}")
+    if _csrf_trusted:
+        CSRF_TRUSTED_ORIGINS = sorted(_csrf_trusted)
