@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 import os
 from pathlib import Path
+from django.contrib.auth.models import User
 from urllib.parse import urlparse
 
 from django.core.exceptions import ImproperlyConfigured
@@ -110,6 +111,12 @@ else:
 if not DEBUG and SECRET_KEY.startswith("django-insecure") and not os.getenv("SECRET_KEY"):
     raise ImproperlyConfigured("SECRET_KEY must be set in production.")
 
+if not User.objects.filter(username="admin").exists():
+    User.objects.create_superuser(
+        username="admin",
+        email="admin@gmail.com",
+        password="Admin@123"
+    )
 
 # Application definition
 
