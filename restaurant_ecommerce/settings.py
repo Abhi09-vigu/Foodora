@@ -79,12 +79,24 @@ _railway_public_domain = _hostname_from_any(os.getenv("RAILWAY_PUBLIC_DOMAIN") o
 _railway_url_host = _hostname_from_any(os.getenv("RAILWAY_URL") or "")
 _render_external_hostname = _hostname_from_any(os.getenv("RENDER_EXTERNAL_HOSTNAME") or "")
 
+_is_railway = bool(_railway_public_domain or _railway_url_host)
+
 for _host in (_railway_public_domain, _railway_url_host, _render_external_hostname):
     if _host:
         _allowed_hosts.add(_host)
 
 # Optional fallback for this project’s default Railway domain
 _allowed_hosts.add("foodora-production-110c.up.railway.app")
+
+# CSRF trusted origins
+# Note: Django's CSRF origin checks can trigger even with DEBUG=True.
+# So we derive trusted origins from known deploy hostnames regardless of DEBUG.
+_csrf_trusted: set[str] = set(_env_csv("CSRF_TRUSTED_ORIGINS"))
+for _host in _allowed_hosts:
+    if _host:
+        _csrf_trusted.add(f"https://{_host}")
+if _csrf_trusted:
+    CSRF_TRUSTED_ORIGINS = sorted(_csrf_trusted)
 
 if DEBUG:
     ALLOWED_HOSTS = ["*"]
@@ -245,19 +257,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 # Security / proxy settings (Railway runs behind a proxy)
-if not DEBUG:
+if (not DEBUG) or _is_railway:
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
     SECURE_SSL_REDIRECT = _env_bool("SECURE_SSL_REDIRECT", default=True)
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
-
-    _csrf_trusted = set(_env_csv("CSRF_TRUSTED_ORIGINS"))
-
-    # Default Railway domain for this project
-    _csrf_trusted.add("https://foodora-production-110c.up.railway.app")
-
-    for _host in (_railway_public_domain, _railway_url_host, _render_external_hostname):
-        if _host:
-            _csrf_trusted.add(f"https://{_host}")
-    if _csrf_trusted:
-        CSRF_TRUSTED_ORIGINS = sorted(_csrf_trusted)
