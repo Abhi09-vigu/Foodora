@@ -52,7 +52,7 @@ SECRET_KEY = os.getenv(
 )
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = _env_bool("DEBUG", default=True)
+DEBUG = False
 
 _allowed_hosts: set[str] = set(_env_csv("ALLOWED_HOSTS"))
 _render_external_hostname = (os.getenv("RENDER_EXTERNAL_HOSTNAME") or "").strip()
@@ -224,7 +224,12 @@ if not DEBUG:
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
 
-    _csrf_trusted = set(_env_csv("CSRF_TRUSTED_ORIGINS"))
+    _csrf_trusted = {
+        # Railway deploy
+        "https://foodora-production-110c.up.railway.app",
+        # Any additional origins provided via environment
+        *_env_csv("CSRF_TRUSTED_ORIGINS"),
+    }
     if _render_external_hostname:
         _csrf_trusted.add(f"https://{_render_external_hostname}")
     if _csrf_trusted:
