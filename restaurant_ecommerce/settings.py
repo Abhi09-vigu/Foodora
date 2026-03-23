@@ -12,7 +12,6 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 import os
 from pathlib import Path
-from django.contrib.auth.models import User
 from urllib.parse import urlparse
 
 from django.core.exceptions import ImproperlyConfigured
@@ -70,9 +69,6 @@ SECRET_KEY = os.getenv(
     "django-insecure-6%k=ehoz*k%ricx0!wd7@c@&w*^%=-t6j6-_vburnyp%b(-mty",
 )
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
-
 _allowed_hosts: set[str] = set(_env_csv("ALLOWED_HOSTS"))
 
 # Platform-provided external hostnames (Railway / legacy Render)
@@ -80,7 +76,14 @@ _railway_public_domain = _hostname_from_any(os.getenv("RAILWAY_PUBLIC_DOMAIN") o
 _railway_url_host = _hostname_from_any(os.getenv("RAILWAY_URL") or "")
 _render_external_hostname = _hostname_from_any(os.getenv("RENDER_EXTERNAL_HOSTNAME") or "")
 
-_is_railway = bool(_railway_public_domain or _railway_url_host)
+_is_railway = bool(
+    (os.getenv("RAILWAY_ENVIRONMENT") or "").strip()
+    or _railway_public_domain
+    or _railway_url_host
+)
+
+# SECURITY WARNING: don't run with debug turned on in production!
+DEBUG = _env_bool("DEBUG", default=(not _is_railway))
 
 for _host in (_railway_public_domain, _railway_url_host, _render_external_hostname):
     if _host:
@@ -110,13 +113,6 @@ else:
 
 if not DEBUG and SECRET_KEY.startswith("django-insecure") and not os.getenv("SECRET_KEY"):
     raise ImproperlyConfigured("SECRET_KEY must be set in production.")
-
-if not User.objects.filter(username="admin").exists():
-    User.objects.create_superuser(
-        username="admin",
-        email="admin@gmail.com",
-        password="Admin@123"
-    )
 
 # Application definition
 

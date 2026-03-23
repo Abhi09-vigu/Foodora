@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.core.management.base import CommandError
 from django.core.management.base import BaseCommand
 
 
@@ -8,6 +9,11 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument('--password', help='Password to set for the admin user')
+        parser.add_argument(
+            '--noinput',
+            action='store_true',
+            help='Do not prompt for missing values (fail instead).',
+        )
 
     def handle(self, *args, **options):
         email = (getattr(settings, 'PRIVATE_ADMIN_EMAIL', '') or '').strip()
@@ -19,6 +25,8 @@ class Command(BaseCommand):
         if not password:
             password = getattr(settings, 'PRIVATE_ADMIN_PASSWORD', '') or ''
         if not password:
+            if options.get('noinput'):
+                raise CommandError('No password provided (use --password or set PRIVATE_ADMIN_PASSWORD).')
             password = self._prompt_password()
 
         User = get_user_model()
