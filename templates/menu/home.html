@@ -51,7 +51,7 @@
           {% for c in categories|slice:':6' %}
           <a href="{% url 'menu:category' c.id %}" class="cat-card">
             <i
-              class="fa-solid {% if 'biryani' in c.name|lower %}fa-bowl-rice{% elif 'burg' in c.name|lower %}fa-burger{% elif 'frie' in c.name|lower %}fa-fire{% elif 'meal' in c.name|lower %}fa-plate-wheat{% elif 'pizza' in c.name|lower %}fa-pizza-slice{% elif 'stat' in c.name|lower or 'start' in c.name|lower %}fa-martini-glass-citrus{% else %}fa-utensils{% endif %} cat-icon"></i>
+              class="fa-solid {% if 'biryani' in c.name|lower %}fa-bowl-rice{% elif 'burg' in c.name|lower %}fa-burger{% elif 'frie' in c.name|lower %}fa-fire{% elif 'meal' in c.name|lower %}fa-plate-wheat{% elif 'pizza' in c.name|lower %}fa-pizza-slice{% elif 'bev' in c.name|lower %}fa-martini-glass-citrus{% elif 'stat' in c.name|lower or 'start' in c.name|lower or 'stater' in c.name|lower %}fa-utensils{% else %}fa-utensils{% endif %} cat-icon"></i>
             {{ c.name|upper }}
           </a>
           {% empty %}
