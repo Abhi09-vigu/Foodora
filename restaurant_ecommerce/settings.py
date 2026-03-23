@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 import os
 from pathlib import Path
+from urllib.parse import urlparse
 
 from django.core.exceptions import ImproperlyConfigured
 
@@ -46,25 +47,51 @@ def _env_csv(name: str) -> list[str]:
     return [part.strip() for part in raw.split(",") if part.strip()]
 
 
+def _hostname_from_any(value: str) -> str | None:
+    value = (value or "").strip()
+    if not value:
+        return None
+
+    if "://" in value:
+        parsed = urlparse(value)
+        netloc = (parsed.netloc or "").strip()
+        if not netloc:
+            return None
+        netloc = netloc.split("@")[-1]
+        return (netloc.split(":")[0] or "").strip() or None
+
+    value = value.split("/")[0]
+    return (value.split(":")[0] or "").strip() or None
+
+
 SECRET_KEY = os.getenv(
     "SECRET_KEY",
     "django-insecure-6%k=ehoz*k%ricx0!wd7@c@&w*^%=-t6j6-_vburnyp%b(-mty",
 )
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = _env_bool("DEBUG", default=True)
 
 _allowed_hosts: set[str] = set(_env_csv("ALLOWED_HOSTS"))
-_render_external_hostname = (os.getenv("RENDER_EXTERNAL_HOSTNAME") or "").strip()
-if _render_external_hostname:
-    _allowed_hosts.add(_render_external_hostname)
+
+# Platform-provided external hostnames (Railway / legacy Render)
+_railway_public_domain = _hostname_from_any(os.getenv("RAILWAY_PUBLIC_DOMAIN") or "")
+_railway_url_host = _hostname_from_any(os.getenv("RAILWAY_URL") or "")
+_render_external_hostname = _hostname_from_any(os.getenv("RENDER_EXTERNAL_HOSTNAME") or "")
+
+for _host in (_railway_public_domain, _railway_url_host, _render_external_hostname):
+    if _host:
+        _allowed_hosts.add(_host)
+
+# Optional fallback for this project’s default Railway domain
+_allowed_hosts.add("foodora-production-110c.up.railway.app")
 
 if DEBUG:
     ALLOWED_HOSTS = ["*"]
 else:
     if not _allowed_hosts:
         raise ImproperlyConfigured(
-            "ALLOWED_HOSTS must be set in production (e.g. set ALLOWED_HOSTS or RENDER_EXTERNAL_HOSTNAME)."
+            "ALLOWED_HOSTS must be set in production (e.g. set ALLOWED_HOSTS or RAILWAY_PUBLIC_DOMAIN)."
         )
     ALLOWED_HOSTS = sorted(_allowed_hosts)
 
@@ -217,20 +244,20 @@ RAZORPAY_KEY_SECRET = (os.getenv('RAZORPAY_KEY_SECRET') or '').strip()
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
-# Security / proxy settings (Render runs behind a proxy)
+# Security / proxy settings (Railway runs behind a proxy)
 if not DEBUG:
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
     SECURE_SSL_REDIRECT = _env_bool("SECURE_SSL_REDIRECT", default=True)
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
 
-    _csrf_trusted = {
-        # Railway deploy
-        "https://foodora-production-110c.up.railway.app",
-        # Any additional origins provided via environment
-        *_env_csv("CSRF_TRUSTED_ORIGINS"),
-    }
-    if _render_external_hostname:
-        _csrf_trusted.add(f"https://{_render_external_hostname}")
+    _csrf_trusted = set(_env_csv("CSRF_TRUSTED_ORIGINS"))
+
+    # Default Railway domain for this project
+    _csrf_trusted.add("https://foodora-production-110c.up.railway.app")
+
+    for _host in (_railway_public_domain, _railway_url_host, _render_external_hostname):
+        if _host:
+            _csrf_trusted.add(f"https://{_host}")
     if _csrf_trusted:
         CSRF_TRUSTED_ORIGINS = sorted(_csrf_trusted)
