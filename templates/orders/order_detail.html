@@ -24,7 +24,11 @@
           <div class="fw-semibold mb-2">Items</div>
           {% for it in order.items.all %}
             <div class="d-flex justify-content-between mb-1">
-              <div>{{ it.name }} <span class="text-muted">x{{ it.quantity }}</span></div>
+              <div>
+                {{ it.name }}
+                {% if it.spice_level %}<span class="text-muted">· {{ it.get_spice_level_display }}</span>{% endif %}
+                <span class="text-muted">x{{ it.quantity }}</span>
+              </div>
               <div class="fw-semibold">₹{{ it.line_total }}</div>
             </div>
           {% endfor %}

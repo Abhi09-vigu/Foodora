@@ -57,9 +57,16 @@ class Order(models.Model):
 
 
 class OrderItem(models.Model):
+	class SpiceLevel(models.TextChoices):
+		KIDS = 'KIDS', 'Kids (mild)'
+		MILD = 'MILD', 'Mild'
+		MEDIUM = 'MEDIUM', 'Medium'
+		SPICY = 'SPICY', 'Spicy'
+
 	order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items')
 	menu_item = models.ForeignKey('menu.MenuItem', on_delete=models.PROTECT)
 	name = models.CharField(max_length=160)
+	spice_level = models.CharField(max_length=10, choices=SpiceLevel.choices, blank=True)
 	unit_price = models.DecimalField(max_digits=10, decimal_places=2)
 	quantity = models.PositiveIntegerField(default=1)
 	line_total = models.DecimalField(max_digits=10, decimal_places=2)

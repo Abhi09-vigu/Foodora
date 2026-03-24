@@ -3,7 +3,19 @@
 {% block title %}Menu | Foodora{% endblock %}
 
 {% block content %}
-<div class="container-fluid px-0 px-md-4 pb-4">
+{% if not request.session.order_type %}
+  <div class="order-type-overlay" role="dialog" aria-modal="true" aria-label="Choose Order Type">
+    <div class="order-type-card">
+      <div class="order-type-title">Choose Order Type</div>
+      <div class="order-type-actions">
+        <a class="btn btn-lg btn-light order-type-btn" href="{% url 'menu:set_order_type' 'PICKUP' %}?next={{ request.get_full_path|urlencode }}">Pickup</a>
+        <a class="btn btn-lg btn-brand order-type-btn" href="{% url 'menu:set_order_type' 'DELIVERY' %}?next={{ request.get_full_path|urlencode }}">Delivery</a>
+      </div>
+    </div>
+  </div>
+{% endif %}
+
+<div class="container-fluid px-0 px-md-4 pb-4"{% if not request.session.order_type %} style="filter: blur(6px); pointer-events:none; user-select:none;"{% endif %}>
   <div class="row g-4">
     <div class="col-12 col-lg-3">
       <div class="section-card p-3 menu-sidebar position-sticky" style="top: 100px; z-index: 10;">
@@ -53,7 +65,8 @@
             <div class="col-12 col-md-6 col-xl-4">
               <div class="menu-item-card" data-item-modal="true" data-id="{{ item.id }}" data-name="{{ item.name }}"
                 data-price="{{ item.price }}" data-img="{% if item.image %}{{ item.image.url }}{% endif %}"
-                data-desc="{{ item.description|default:'Fresh ingredients, carefully prepared' }}">
+                data-desc="{{ item.description|default:'Fresh ingredients, carefully prepared' }}"
+                data-spice-enabled="{{ item.spice_level_enabled|yesno:'1,0' }}">
                 <div class="menu-item-card-body">
                   <div class="fw-bold mb-1">{{ item.name }}</div>
                   <div class="fw-semibold mb-2">₹{{ item.price }}</div>
@@ -125,4 +138,43 @@
     setActive(sections[0].id);
   })();
 </script>
+
+<style>
+  .order-type-overlay{
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    background: rgba(0,0,0,0.65);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding: 16px;
+  }
+  .order-type-card{
+    width: min(780px, 96vw);
+    background: rgba(0,0,0,0.88);
+    border-radius: 28px;
+    padding: 26px 22px;
+  }
+  .order-type-title{
+    text-align:center;
+    color: #fff;
+    font-weight: 800;
+    font-size: clamp(28px, 4vw, 44px);
+    letter-spacing: -0.5px;
+    margin-bottom: 18px;
+  }
+  .order-type-actions{
+    display:flex;
+    gap: 18px;
+    justify-content:center;
+    flex-wrap: wrap;
+  }
+  .order-type-btn{
+    min-width: 220px;
+    border-radius: 18px;
+    font-weight: 800;
+    padding: 14px 24px;
+  }
+</style>
 {% endblock %}

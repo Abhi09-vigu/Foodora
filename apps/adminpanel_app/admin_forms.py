@@ -18,7 +18,7 @@ class CategoryForm(forms.ModelForm):
 class MenuItemForm(forms.ModelForm):
     class Meta:
         model = MenuItem
-        fields = ['category', 'name', 'description', 'price', 'image', 'available', 'stock_qty']
+        fields = ['category', 'name', 'description', 'price', 'image', 'available', 'stock_qty', 'spice_level_enabled']
         widgets = {
             'category': forms.Select(attrs={'class': 'form-select'}),
             'name': forms.TextInput(attrs={'class': 'form-control'}),
@@ -26,6 +26,7 @@ class MenuItemForm(forms.ModelForm):
             'price': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'available': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'stock_qty': forms.NumberInput(attrs={'class': 'form-control'}),
+            'spice_level_enabled': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
 
 

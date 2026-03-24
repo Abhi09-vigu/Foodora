@@ -74,6 +74,7 @@
             <div class="product-card" data-item-modal="true" data-id="{{ item.id }}" data-name="{{ item.name }}"
               data-price="{{ item.price }}" data-img="{% if item.image %}{{ item.image.url }}{% endif %}"
               data-desc="{{ item.description|default:'Fresh ingredients, carefully prepared' }}"
+              data-spice-enabled="{{ item.spice_level_enabled|yesno:'1,0' }}"
               style="cursor: pointer; transition: transform 0.2s;">
               <div class="product-img-wrapper">
                 {% if item.image %}

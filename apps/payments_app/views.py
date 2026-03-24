@@ -56,7 +56,7 @@ def payment(request: HttpRequest, order_id: int | None = None):
     order = get_object_or_404(Order.objects.prefetch_related('items').select_related('address'), id=order_id, user=request.user)
 
     if order.is_paid:
-        return redirect('payments:payment_success')
+        return redirect(reverse('payments:payment_success') + f'?order_id={order.id}')
 
     try:
         client = _get_razorpay_client()
@@ -102,10 +102,14 @@ def payment(request: HttpRequest, order_id: int | None = None):
 
 @login_required
 @require_http_methods(["GET", "POST"])
-def payment_success(request: HttpRequest):
+def payment_success(request: HttpRequest, order_id: int | None = None):
     """POST: verify Razorpay payment. GET: render success page."""
     if request.method == 'GET':
-        order_id = int(request.GET.get('order_id') or 0)
+        if order_id is None:
+            order_id = int(request.GET.get('order_id') or 0)
+        if not order_id:
+            messages.info(request, 'Payment status updated. Please open your order to view details.')
+            return redirect('menu:home')
         order = get_object_or_404(Order.objects.prefetch_related('items').select_related('address'), id=order_id, user=request.user)
         return render(request, 'payments/payment_success.html', {'order': order})
 
@@ -181,5 +185,8 @@ def payment_success(request: HttpRequest):
 @login_required
 def payment_failure(request: HttpRequest):
     order_id = int(request.GET.get('order_id') or 0)
+    if not order_id:
+        messages.error(request, 'Payment failed or was cancelled.')
+        return redirect('menu:home')
     order = get_object_or_404(Order, id=order_id, user=request.user)
     return render(request, 'payments/payment_failure.html', {'order': order})

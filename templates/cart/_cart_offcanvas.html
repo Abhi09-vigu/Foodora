@@ -16,6 +16,9 @@
             <div style="min-width: 0;">
               <div class="fw-semibold text-truncate">{{ row.menu_item.name }}</div>
               <div class="text-muted small">₹{{ row.unit_price }} each</div>
+              {% if row.spice_level %}
+                <div class="text-muted small">Spice: {{ row.spice_level_display }}</div>
+              {% endif %}
 
               <div class="d-flex align-items-center gap-2 mt-2">
                 {% if row.quantity|add:'-1' >= 1 %}
@@ -24,6 +27,7 @@
                     <input type="hidden" name="quantity" value="{{ row.quantity|add:'-1' }}" />
                     <input type="hidden" name="override" value="true" />
                     <input type="hidden" name="next" value="{{ request.path }}?cart=1" />
+                    {% if row.spice_level %}<input type="hidden" name="spice_level" value="{{ row.spice_level }}" />{% endif %}
                     <button class="qty-btn" type="submit" aria-label="Decrease">-</button>
                   </form>
                 {% else %}
@@ -41,6 +45,7 @@
                   <input type="hidden" name="quantity" value="{{ row.quantity|add:'1' }}" />
                   <input type="hidden" name="override" value="true" />
                   <input type="hidden" name="next" value="{{ request.path }}?cart=1" />
+                  {% if row.spice_level %}<input type="hidden" name="spice_level" value="{{ row.spice_level }}" />{% endif %}
                   <button class="qty-btn qty-btn-plus" type="submit" aria-label="Increase">+</button>
                 </form>
 

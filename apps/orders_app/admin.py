@@ -6,7 +6,13 @@ from .models import Order, OrderItem
 class OrderItemInline(admin.TabularInline):
 	model = OrderItem
 	extra = 0
-	readonly_fields = ('name', 'unit_price', 'quantity', 'line_total')
+	can_delete = False
+	fields = ('name', 'spice_level_display', 'unit_price', 'quantity', 'line_total')
+	readonly_fields = ('name', 'spice_level_display', 'unit_price', 'quantity', 'line_total')
+
+	@admin.display(description='Spice level')
+	def spice_level_display(self, obj: OrderItem):
+		return obj.get_spice_level_display() if obj.spice_level else '—'
 
 
 @admin.register(Order)
@@ -15,8 +21,3 @@ class OrderAdmin(admin.ModelAdmin):
 	list_filter = ('status', 'is_paid', 'created_at')
 	search_fields = ('id', 'user__email', 'invoice_number')
 	inlines = [OrderItemInline]
-
-
-@admin.register(OrderItem)
-class OrderItemAdmin(admin.ModelAdmin):
-	list_display = ('order', 'name', 'unit_price', 'quantity', 'line_total')

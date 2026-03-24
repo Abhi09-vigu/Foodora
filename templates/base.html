@@ -109,6 +109,17 @@
             {% csrf_token %}
             <input type="hidden" name="override" value="false" />
 
+            <div id="modalSpiceWrap" class="mb-3" style="display:none;">
+              <label class="form-label">Spice level</label>
+              <select class="form-select" name="spice_level" id="modalSpiceSelect">
+                <option value="" selected disabled>Select</option>
+                <option value="KIDS">Kids (mild)</option>
+                <option value="MILD">Mild</option>
+                <option value="MEDIUM">Medium</option>
+                <option value="SPICY">Spicy</option>
+              </select>
+            </div>
+
             <div class="d-flex align-items-center justify-content-between bg-light rounded-pill px-3 py-2 mb-4 mx-auto"
               style="max-width: 150px;">
               <button type="button" class="btn btn-sm btn-link text-dark text-decoration-none"
@@ -259,6 +270,15 @@
           }
           var desc = trigger.getAttribute('data-desc') || 'Fresh ingredients, carefully prepared';
 
+          var spiceEnabled = (trigger.getAttribute('data-spice-enabled') || '').trim() === '1';
+          var spiceWrap = document.getElementById('modalSpiceWrap');
+          var spiceSelect = document.getElementById('modalSpiceSelect');
+          if (spiceWrap && spiceSelect) {
+            spiceWrap.style.display = spiceEnabled ? 'block' : 'none';
+            spiceSelect.required = spiceEnabled;
+            if (!spiceEnabled) spiceSelect.value = '';
+          }
+
           document.getElementById('modalItemName').textContent = name;
           document.getElementById('modalItemPrice').textContent = '₹' + price.toFixed(2);
           document.getElementById('modalItemDesc').textContent = desc;
@@ -310,7 +330,7 @@
               'X-CSRFToken': formData.get('csrfmiddlewaretoken') || ''
             }
           }).then(res => res.json()).then(data => {
-            if (data.success) {
+            if (data && data.success) {
               var badges = document.querySelectorAll('.badge.bg-brand');
               badges.forEach(b => b.textContent = data.cart_count);
               if (itemModalEl) {
@@ -331,6 +351,10 @@
                   window.bootstrap.Offcanvas.getOrCreateInstance(cartEl).show();
                 }
               });
+            } else {
+              try {
+                alert((data && data.message) ? data.message : 'Could not add item to cart.');
+              } catch (e) { }
             }
           }).finally(() => {
             submitBtn.innerHTML = originalText;

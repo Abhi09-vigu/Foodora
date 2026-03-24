@@ -29,10 +29,28 @@ class Cart:
         self.cart = cart
         self.coupon_code = self.session.get(COUPON_SESSION_KEY)
 
-    def add(self, item: MenuItem, quantity: int = 1, override_quantity: bool = False):
+    def add(
+        self,
+        item: MenuItem,
+        quantity: int = 1,
+        override_quantity: bool = False,
+        spice_level: str | None = None,
+    ):
         item_id = str(item.id)
         if item_id not in self.cart:
-            self.cart[item_id] = {'quantity': 0, 'price': str(item.price)}
+            self.cart[item_id] = {'quantity': 0, 'price': str(item.price), 'spice_level': ''}
+
+        if getattr(item, 'spice_level_enabled', False):
+            if not spice_level:
+                raise ValueError('Spice level is required for this item.')
+            valid = {c[0] for c in MenuItem.SpiceLevel.choices}
+            if spice_level not in valid:
+                raise ValueError('Invalid spice level.')
+            self.cart[item_id]['spice_level'] = spice_level
+        else:
+            # Ensure desserts/non-spicy items never retain a stale spice level.
+            self.cart[item_id]['spice_level'] = ''
+
         if override_quantity:
             self.cart[item_id]['quantity'] = int(quantity)
         else:
@@ -66,11 +84,20 @@ class Cart:
                 continue
             price = Decimal(row['price'])
             quantity = int(row['quantity'])
+            spice_level = (row.get('spice_level') or '').strip()
+            spice_level_display = ''
+            if spice_level:
+                try:
+                    spice_level_display = MenuItem.SpiceLevel(spice_level).label
+                except ValueError:
+                    spice_level_display = spice_level
             yield {
                 'menu_item': menu_item,
                 'quantity': quantity,
                 'unit_price': price,
                 'line_total': price * quantity,
+                'spice_level': spice_level,
+                'spice_level_display': spice_level_display,
             }
 
     def get_subtotal(self) -> Decimal:

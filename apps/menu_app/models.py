@@ -14,6 +14,12 @@ class Category(models.Model):
 
 
 class MenuItem(models.Model):
+	class SpiceLevel(models.TextChoices):
+		KIDS = 'KIDS', 'Kids (mild)'
+		MILD = 'MILD', 'Mild'
+		MEDIUM = 'MEDIUM', 'Medium'
+		SPICY = 'SPICY', 'Spicy'
+
 	category = models.ForeignKey(Category, on_delete=models.PROTECT, related_name='items')
 	name = models.CharField(max_length=160)
 	slug = models.SlugField(max_length=180, unique=True, blank=True)
@@ -22,6 +28,7 @@ class MenuItem(models.Model):
 	image = models.ImageField(upload_to='menu/', blank=True)
 	available = models.BooleanField(default=True)
 	stock_qty = models.PositiveIntegerField(default=0)
+	spice_level_enabled = models.BooleanField(default=False)
 	created_at = models.DateTimeField(auto_now_add=True)
 
 	class Meta:

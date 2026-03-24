@@ -28,6 +28,9 @@
             <td>
               <div class="fw-semibold">{{ row.menu_item.name }}</div>
               <div class="text-muted small">{{ row.menu_item.category.name }}</div>
+              {% if row.spice_level %}
+                <div class="text-muted small">Spice: {{ row.spice_level_display }}</div>
+              {% endif %}
             </td>
             <td>₹{{ row.unit_price }}</td>
             <td>
@@ -37,6 +40,7 @@
                   {% csrf_token %}
                   <input type="hidden" name="quantity" value="{{ row.quantity|add:'-1' }}" />
                   <input type="hidden" name="override" value="true" />
+                  {% if row.spice_level %}<input type="hidden" name="spice_level" value="{{ row.spice_level }}" />{% endif %}
                   <button class="qty-btn" type="submit" aria-label="Decrease">-</button>
                 </form>
                 {% else %}
@@ -52,6 +56,7 @@
                   {% csrf_token %}
                   <input type="hidden" name="quantity" value="{{ row.quantity|add:'1' }}" />
                   <input type="hidden" name="override" value="true" />
+                  {% if row.spice_level %}<input type="hidden" name="spice_level" value="{{ row.spice_level }}" />{% endif %}
                   <button class="qty-btn qty-btn-plus" type="submit" aria-label="Increase">+</button>
                 </form>
               </div>

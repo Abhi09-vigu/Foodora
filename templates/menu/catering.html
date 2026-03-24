@@ -53,7 +53,8 @@
             <div class="col-12 col-md-6 col-xl-4">
               <div class="menu-item-card" data-item-modal="true" data-id="{{ item.id }}" data-name="{{ item.name }}"
                 data-price="{{ item.price }}" data-img="{% if item.image %}{{ item.image.url }}{% endif %}"
-                data-desc="{{ item.description|default:'Fresh ingredients, carefully prepared' }}">
+                data-desc="{{ item.description|default:'Fresh ingredients, carefully prepared' }}"
+                data-spice-enabled="{{ item.spice_level_enabled|yesno:'1,0' }}">
                 <div class="menu-item-card-body">
                   <div class="fw-bold mb-1">{{ item.name }}</div>
                   <div class="fw-semibold mb-2">₹{{ item.price }}</div>

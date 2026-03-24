@@ -35,7 +35,12 @@
           <thead><tr><th>Item</th><th>Qty</th><th>Unit</th><th>Total</th></tr></thead>
           <tbody>
             {% for it in order.items.all %}
-              <tr><td>{{ it.name }}</td><td>{{ it.quantity }}</td><td>₹{{ it.unit_price }}</td><td>₹{{ it.line_total }}</td></tr>
+              <tr>
+                <td>{{ it.name }}{% if it.spice_level %} <span class="text-muted">· {{ it.get_spice_level_display }}</span>{% endif %}</td>
+                <td>{{ it.quantity }}</td>
+                <td>₹{{ it.unit_price }}</td>
+                <td>₹{{ it.line_total }}</td>
+              </tr>
             {% endfor %}
           </tbody>
         </table>

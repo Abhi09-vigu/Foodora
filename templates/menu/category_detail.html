@@ -27,13 +27,18 @@
               </div>
               <div class="mt-3 d-flex gap-2">
                 <a class="btn btn-sm btn-brand" href="{% url 'menu:detail' item.slug %}">Details</a>
-                <form method="post" action="{% url 'cart:add' item.id %}">
-                  {% csrf_token %}
-                  <input type="hidden" name="quantity" value="1" />
-                  <input type="hidden" name="override" value="false" />
-                  <input type="hidden" name="next" value="{% url 'menu:category' category.id %}" />
-                  <button class="btn btn-sm btn-outline-secondary" type="submit">Add</button>
-                </form>
+
+                {% if item.spice_level_enabled %}
+                  <a class="btn btn-sm btn-outline-secondary" href="{% url 'menu:detail' item.slug %}">Customize</a>
+                {% else %}
+                  <form method="post" action="{% url 'cart:add' item.id %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="quantity" value="1" />
+                    <input type="hidden" name="override" value="false" />
+                    <input type="hidden" name="next" value="{% url 'menu:category' category.id %}" />
+                    <button class="btn btn-sm btn-outline-secondary" type="submit">Add</button>
+                  </form>
+                {% endif %}
               </div>
             </div>
           </div>

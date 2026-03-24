@@ -15,7 +15,7 @@ class MenuItemVariantInline(admin.TabularInline):
 
 @admin.register(MenuItem)
 class MenuItemAdmin(admin.ModelAdmin):
-	list_display = ('name', 'category', 'price', 'available', 'stock_qty', 'created_at')
+	list_display = ('name', 'category', 'price', 'available', 'stock_qty', 'spice_level_enabled', 'created_at')
 	list_filter = ('available', 'category')
 	search_fields = ('name',)
 	prepopulated_fields = {'slug': ('name',)}

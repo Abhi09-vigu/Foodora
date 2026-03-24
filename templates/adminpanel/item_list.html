@@ -11,7 +11,7 @@
 
     <div class="table-responsive">
       <table class="table align-middle">
-        <thead><tr><th>Item</th><th>Category</th><th>Price</th><th>Stock</th><th>Available</th><th style="width:180px"></th></tr></thead>
+        <thead><tr><th>Item</th><th>Category</th><th>Price</th><th>Stock</th><th>Available</th><th>Spice level</th><th style="width:180px"></th></tr></thead>
         <tbody>
           {% for it in items %}
             <tr>
@@ -20,6 +20,7 @@
               <td>₹{{ it.price }}</td>
               <td>{{ it.stock_qty }}</td>
               <td>{% if it.available %}<span class="badge text-bg-success">Yes</span>{% else %}<span class="badge text-bg-secondary">No</span>{% endif %}</td>
+              <td>{% if it.spice_level_enabled %}<span class="badge text-bg-primary">Enabled</span>{% else %}<span class="badge text-bg-light">—</span>{% endif %}</td>
               <td class="text-end">
                 <a class="btn btn-sm btn-outline-secondary" href="{% url 'adminpanel:item_edit' it.id %}">Edit</a>
                 <form class="d-inline" method="post" action="{% url 'adminpanel:item_delete' it.id %}">{% csrf_token %}
@@ -28,7 +29,7 @@
               </td>
             </tr>
           {% empty %}
-            <tr><td colspan="6" class="text-muted">No items yet.</td></tr>
+            <tr><td colspan="7" class="text-muted">No items yet.</td></tr>
           {% endfor %}
         </tbody>
       </table>

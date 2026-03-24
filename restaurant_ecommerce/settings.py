@@ -253,6 +253,10 @@ PRIVATE_ADMIN_URL_PREFIX = 'private-admin/'
 RAZORPAY_KEY_ID = (os.getenv('RAZORPAY_KEY_ID') or '').strip()
 RAZORPAY_KEY_SECRET = (os.getenv('RAZORPAY_KEY_SECRET') or '').strip()
 
+# If your business uses a third-party delivery partner, set this.
+# When users choose "Delivery" on the menu popup, they'll be redirected here.
+THIRD_PARTY_DELIVERY_URL = (os.getenv('THIRD_PARTY_DELIVERY_URL') or '').strip()
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 

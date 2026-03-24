@@ -19,14 +19,27 @@ from .models import Order, OrderItem
 
 CHECKOUT_ADDRESS_SESSION_KEY = 'checkout_address_id'
 CHECKOUT_DELIVERY_SESSION_KEY = 'checkout_delivery_option'
+ORDER_TYPE_SESSION_KEY = 'order_type'
 
 
 def _require_cart(cart: Cart):
 	return len(cart) > 0
 
 
+def _redirect_if_delivery_selected(request):
+	if (request.session.get(ORDER_TYPE_SESSION_KEY) or '').strip().upper() != 'DELIVERY':
+		return None
+	url = (getattr(settings, 'THIRD_PARTY_DELIVERY_URL', '') or '').strip()
+	if url:
+		return redirect(url)
+	return redirect('menu:list')
+
+
 @login_required
 def checkout_address(request):
+	redir = _redirect_if_delivery_selected(request)
+	if redir:
+		return redir
 	cart = Cart(request)
 	if not _require_cart(cart):
 		messages.info(request, 'Your cart is empty.')
@@ -54,7 +67,7 @@ def checkout_address(request):
 					Address.objects.filter(user=request.user, is_default=True).exclude(id=address.id).update(is_default=False)
 				request.session[CHECKOUT_ADDRESS_SESSION_KEY] = address.id
 			request.session.modified = True
-			return redirect('orders:checkout_delivery')
+			return redirect('orders:checkout_summary')
 	else:
 		form = CheckoutAddressForm(user=request.user)
 
@@ -63,6 +76,9 @@ def checkout_address(request):
 
 @login_required
 def checkout_delivery(request):
+	redir = _redirect_if_delivery_selected(request)
+	if redir:
+		return redir
 	cart = Cart(request)
 	if not _require_cart(cart):
 		return redirect('menu:list')
@@ -87,16 +103,16 @@ def checkout_delivery(request):
 
 @login_required
 def checkout_summary(request):
+	redir = _redirect_if_delivery_selected(request)
+	if redir:
+		return redir
 	cart = Cart(request)
 	if not _require_cart(cart):
 		return redirect('menu:list')
 
 	address_id = request.session.get(CHECKOUT_ADDRESS_SESSION_KEY)
-	delivery_option = request.session.get(CHECKOUT_DELIVERY_SESSION_KEY)
 	if not address_id:
 		return redirect('orders:checkout_address')
-	if not delivery_option:
-		return redirect('orders:checkout_delivery')
 
 	address = get_object_or_404(Address, id=address_id, user=request.user)
 	items = list(cart.iter_items())
@@ -106,7 +122,6 @@ def checkout_summary(request):
 		'orders/checkout_summary.html',
 		{
 			'address': address,
-			'delivery_option': delivery_option,
 			'cart_items': items,
 			'totals': totals,
 		},
@@ -115,16 +130,16 @@ def checkout_summary(request):
 
 @login_required
 def checkout_confirm(request):
+	redir = _redirect_if_delivery_selected(request)
+	if redir:
+		return redir
 	cart = Cart(request)
 	if not _require_cart(cart):
 		return redirect('menu:list')
 
 	address_id = request.session.get(CHECKOUT_ADDRESS_SESSION_KEY)
-	delivery_option = request.session.get(CHECKOUT_DELIVERY_SESSION_KEY)
 	if not address_id:
 		return redirect('orders:checkout_address')
-	if not delivery_option:
-		return redirect('orders:checkout_delivery')
 
 	address = get_object_or_404(Address, id=address_id, user=request.user)
 	items = list(cart.iter_items())
@@ -154,8 +169,8 @@ def checkout_confirm(request):
 
 			order = Order.objects.create(
 				user=request.user,
-				address=address if delivery_option == Order.DeliveryOption.DELIVERY else None,
-				delivery_option=delivery_option,
+				address=address,
+				delivery_option=Order.DeliveryOption.PICKUP,
 				scheduled_time=scheduled_time,
 				tip_amount=tip_amount,
 				special_instructions=special_instructions,
@@ -174,6 +189,7 @@ def checkout_confirm(request):
 					order=order,
 					menu_item=m,
 					name=m.name,
+					spice_level=(row.get('spice_level') or ''),
 					unit_price=row['unit_price'],
 					quantity=qty,
 					line_total=row['line_total'],
@@ -186,7 +202,6 @@ def checkout_confirm(request):
 
 		# cleanup session checkout + cart
 		request.session.pop(CHECKOUT_ADDRESS_SESSION_KEY, None)
-		request.session.pop(CHECKOUT_DELIVERY_SESSION_KEY, None)
 		cart.clear()
 		messages.success(request, 'Order created. Please complete payment to confirm.')
 		return redirect('payments:payment_with_id', order_id=order.id)
@@ -196,7 +211,6 @@ def checkout_confirm(request):
 		'orders/checkout_confirm.html',
 		{
 			'address': address,
-			'delivery_option': delivery_option,
 			'cart_items': items,
 			'totals': totals,
 		},

@@ -31,7 +31,20 @@ def cart_add(request, item_id: int):
 	form = CartAddForm(request.POST)
 	is_ajax = request.headers.get('x-requested-with') == 'XMLHttpRequest'
 	if form.is_valid():
-		cart.add(item=item, quantity=form.cleaned_data['quantity'], override_quantity=form.cleaned_data['override'])
+		try:
+			cart.add(
+				item=item,
+				quantity=form.cleaned_data['quantity'],
+				override_quantity=form.cleaned_data['override'],
+				spice_level=(form.cleaned_data.get('spice_level') or '').strip() or None,
+			)
+		except ValueError as e:
+			if is_ajax:
+				return JsonResponse({'success': False, 'message': str(e)}, status=400)
+			messages.error(request, str(e))
+			if item.spice_level_enabled:
+				return redirect('menu:detail', slug=item.slug)
+			return redirect(request.POST.get('next') or 'cart:detail')
 		if is_ajax:
 			return JsonResponse({'success': True, 'cart_count': len(cart), 'message': f"Added {item.name} to your cart."})
 		messages.success(request, f"Added {item.name} to your cart.")
@@ -49,7 +62,18 @@ def cart_update(request, item_id: int):
 	form = CartAddForm(request.POST)
 	is_ajax = request.headers.get('x-requested-with') == 'XMLHttpRequest'
 	if form.is_valid():
-		cart.add(item=item, quantity=form.cleaned_data['quantity'], override_quantity=True)
+		try:
+			cart.add(
+				item=item,
+				quantity=form.cleaned_data['quantity'],
+				override_quantity=True,
+				spice_level=(form.cleaned_data.get('spice_level') or '').strip() or None,
+			)
+		except ValueError as e:
+			if is_ajax:
+				return JsonResponse({'success': False, 'message': str(e)}, status=400)
+			messages.error(request, str(e))
+			return redirect(request.POST.get('next') or 'cart:detail')
 		if is_ajax:
 			return JsonResponse({'success': True, 'cart_count': len(cart), 'message': 'Cart updated.'})
 		messages.success(request, 'Cart updated.')

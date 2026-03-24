@@ -29,7 +29,7 @@
     <tbody>
       {% for it in order.items.all %}
         <tr>
-          <td>{{ it.name }}</td>
+          <td>{{ it.name }}{% if it.spice_level %} ({{ it.get_spice_level_display }}){% endif %}</td>
           <td>{{ it.quantity }}</td>
           <td>₹{{ it.unit_price }}</td>
           <td>₹{{ it.line_total }}</td>

@@ -35,6 +35,20 @@
             <input type="hidden" name="quantity" value="1" />
             <input type="hidden" name="override" value="false" />
             <input type="hidden" name="next" value="{% url 'menu:detail' item.slug %}" />
+
+            {% if item.spice_level_enabled %}
+              <div class="mb-2" style="min-width:220px;">
+                <label class="form-label mb-1">Spice level</label>
+                <select class="form-select" name="spice_level" required>
+                  <option value="" selected disabled>Select</option>
+                  <option value="KIDS">Kids (mild)</option>
+                  <option value="MILD">Mild</option>
+                  <option value="MEDIUM">Medium</option>
+                  <option value="SPICY">Spicy</option>
+                </select>
+              </div>
+            {% endif %}
+
             <button class="btn btn-brand" type="submit" {% if not item.is_in_stock %}disabled{% endif %}>Add to Cart</button>
           </form>
 

@@ -1,14 +1,20 @@
 from decimal import Decimal, InvalidOperation
 
 from django.contrib import messages
+from django.conf import settings
 
 from django.core.paginator import Paginator
 from django.db.models import Avg, Count
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
+from django.views.decorators.http import require_GET
 
 from apps.reviews_app.forms import ReviewForm
 
 from .models import Category, MenuItem
+
+
+ORDER_TYPE_SESSION_KEY = 'order_type'
 
 
 def home(request):
@@ -153,6 +159,25 @@ def item_detail(request, slug: str):
 			'related': related,
 		},
 	)
+
+
+@require_GET
+def set_order_type(request, choice: str):
+	choice = (choice or '').strip().upper()
+	if choice not in {'PICKUP', 'DELIVERY'}:
+		choice = 'PICKUP'
+
+	next_url = (request.GET.get('next') or '').strip() or reverse('menu:list')
+	if choice == 'DELIVERY':
+		partner = (getattr(settings, 'THIRD_PARTY_DELIVERY_URL', '') or '').strip()
+		if partner:
+			return redirect(partner)
+		# If no partner URL is configured, fall back to pickup flow.
+		choice = 'PICKUP'
+
+	request.session[ORDER_TYPE_SESSION_KEY] = choice
+	request.session.modified = True
+	return redirect(next_url)
 
 def contact(request):
 	if request.method == 'POST':

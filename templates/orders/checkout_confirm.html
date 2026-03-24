@@ -6,7 +6,7 @@
 <div class="container pb-4" style="max-width:1100px;">
   <div class="section-card p-4">
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
-      <h1 class="h4 mb-0">Checkout · Step 4/4 · Confirm</h1>
+      <h1 class="h4 mb-0">Checkout · Step 3/3 · Confirm</h1>
       <a class="btn btn-outline-secondary" href="{% url 'orders:checkout_summary' %}">Back</a>
     </div>
 
@@ -16,7 +16,11 @@
           <div class="fw-semibold mb-2">Items</div>
           {% for row in cart_items %}
           <div class="d-flex justify-content-between mb-1">
-            <div>{{ row.menu_item.name }} <span class="text-muted">x{{ row.quantity }}</span></div>
+            <div>
+              {{ row.menu_item.name }}
+              {% if row.spice_level %}<span class="text-muted">· {{ row.spice_level_display }}</span>{% endif %}
+              <span class="text-muted">x{{ row.quantity }}</span>
+            </div>
             <div class="fw-semibold">₹{{ row.line_total }}</div>
           </div>
           {% endfor %}
