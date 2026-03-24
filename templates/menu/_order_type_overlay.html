@@ -1,0 +1,14 @@
+{% if not request.session.order_type %}
+  <div class="order-type-overlay" role="dialog" aria-modal="true" aria-label="Choose Order Type">
+    <div class="order-type-card">
+      <div class="order-type-title">Choose Order Type</div>
+      <div class="order-type-actions">
+        <a class="btn btn-lg btn-light order-type-btn" href="{% url 'menu:set_order_type' 'PICKUP' %}?next={{ request.get_full_path|urlencode }}">Pickup</a>
+        <a class="btn btn-lg btn-brand order-type-btn" href="{% url 'menu:set_order_type' 'DELIVERY' %}?next={{ request.get_full_path|urlencode }}">Delivery</a>
+      </div>
+    </div>
+  </div>
+  <script>
+    document.body.classList.add('order-type-locked');
+  </script>
+{% endif %}

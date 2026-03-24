@@ -3,7 +3,9 @@
 {% block title %}{{ item.name }} | Foodora{% endblock %}
 
 {% block content %}
-<div class="container pb-4">
+{% include 'menu/_order_type_overlay.html' %}
+
+<div class="container pb-4 order-type-blur-target">
   <div class="section-card p-4 mb-4">
     <div class="row g-4">
       <div class="col-lg-5">

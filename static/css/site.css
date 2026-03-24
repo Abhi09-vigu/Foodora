@@ -252,6 +252,58 @@ body {
   color: #fff;
 }
 
+/* Order type popup (Pickup vs Delivery) */
+body.order-type-locked {
+  overflow: hidden;
+}
+
+body.order-type-locked .order-type-blur-target {
+  filter: blur(6px);
+  pointer-events: none;
+  user-select: none;
+}
+
+.order-type-overlay{
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  background: rgba(0,0,0,0.65);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding: 16px;
+}
+
+.order-type-card{
+  width: min(780px, 96vw);
+  background: rgba(0,0,0,0.88);
+  border-radius: 28px;
+  padding: 26px 22px;
+}
+
+.order-type-title{
+  text-align:center;
+  color: #fff;
+  font-weight: 800;
+  font-size: clamp(28px, 4vw, 44px);
+  letter-spacing: -0.5px;
+  margin-bottom: 18px;
+}
+
+.order-type-actions{
+  display:flex;
+  gap: 18px;
+  justify-content:center;
+  flex-wrap: wrap;
+}
+
+.order-type-btn{
+  min-width: 220px;
+  border-radius: 18px;
+  font-weight: 800;
+  padding: 14px 24px;
+}
+
 /* Private admin panel */
 .admin-navbar {
   background: var(--brand-surface);
