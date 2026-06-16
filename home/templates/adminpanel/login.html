@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block title %}Private Admin Login{% endblock %}
+
+{% block content %}
+<div class="container pb-4" style="max-width:620px;">
+  <div class="section-card p-4">
+    <h1 class="h4 mb-3">Private Admin Login</h1>
+    <div class="text-muted mb-3">Only the configured private admin email can sign in.</div>
+    <form method="post">
+      {% csrf_token %}
+      {{ form.non_field_errors }}
+      <div class="mb-3">
+        <label class="form-label">Email</label>
+        {{ form.email }}
+        {{ form.email.errors }}
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Password</label>
+        {{ form.password }}
+        {{ form.password.errors }}
+      </div>
+      <button class="btn btn-brand" type="submit">Login</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

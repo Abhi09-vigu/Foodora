@@ -1,0 +1,43 @@
+{% extends 'adminpanel/base.html' %}
+
+{% block title %}Delivery Pincodes{% endblock %}
+
+{% block content %}
+  <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <div>
+      <h1 class="h4 mb-1">Delivery Pincodes</h1>
+      <div class="text-muted">Allowed zip codes for the delivery popup</div>
+    </div>
+    <a class="btn btn-brand" href="{% url 'adminpanel:delivery_pincode_add' %}">Add</a>
+  </div>
+
+  <div class="table-responsive">
+    <table class="table align-middle">
+      <thead>
+        <tr>
+          <th>Pincode</th>
+          <th>Active</th>
+          <th>Order</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in delivery_pincodes %}
+          <tr>
+            <td class="fw-semibold">{{ p.pincode }}</td>
+            <td>{{ p.is_active|yesno:'Yes,No' }}</td>
+            <td>{{ p.ordering }}</td>
+            <td class="text-end">
+              <a class="btn btn-sm btn-outline-secondary" href="{% url 'adminpanel:delivery_pincode_edit' p.id %}">Edit</a>
+              <form class="d-inline" method="post" action="{% url 'adminpanel:delivery_pincode_delete' p.id %}">{% csrf_token %}
+                <button class="btn btn-sm btn-outline-danger" type="submit">Delete</button>
+              </form>
+            </td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="4" class="text-muted">No delivery pincodes yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endblock %}

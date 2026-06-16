@@ -1,0 +1,37 @@
+{% extends 'adminpanel/base.html' %}
+
+{% block title %}Coupons{% endblock %}
+
+{% block content %}
+  <div class="section-card p-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h1 class="h4 mb-0">Coupons</h1>
+      <a class="btn btn-brand" href="{% url 'adminpanel:coupon_add' %}">Add</a>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table align-middle">
+        <thead><tr><th>Code</th><th>Type</th><th>Amount</th><th>Min total</th><th>Active</th><th style="width:180px"></th></tr></thead>
+        <tbody>
+          {% for c in coupons %}
+            <tr>
+              <td class="fw-semibold">{{ c.code }}</td>
+              <td>{{ c.discount_type }}</td>
+              <td>{{ c.amount }}</td>
+              <td>{{ c.min_order_total }}</td>
+              <td>{% if c.active %}<span class="badge text-bg-success">Yes</span>{% else %}<span class="badge text-bg-secondary">No</span>{% endif %}</td>
+              <td class="text-end">
+                <a class="btn btn-sm btn-outline-secondary" href="{% url 'adminpanel:coupon_edit' c.id %}">Edit</a>
+                <form class="d-inline" method="post" action="{% url 'adminpanel:coupon_delete' c.id %}">{% csrf_token %}
+                  <button class="btn btn-sm btn-outline-danger" type="submit">Delete</button>
+                </form>
+              </td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="6" class="text-muted">No coupons yet.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+{% endblock %}

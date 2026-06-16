@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Our Story | Foodora{% endblock %}
+
+{% block content %}
+<style>
+  .story-wrapper {
+    padding-top: 3rem;
+    padding-bottom: 5rem;
+  }
+  .story-title {
+    font-weight: 800;
+    font-size: 3rem;
+    margin-bottom: 3rem;
+    color: var(--brand-accent);
+    letter-spacing: -0.5px;
+  }
+  .story-heading {
+    font-weight: 700;
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    color: var(--brand-text);
+  }
+  .story-text {
+    font-size: 1.05rem;
+    line-height: 1.8;
+    color: var(--brand-text);
+    opacity: 0.9;
+  }
+  .story-img-container {
+    border-radius: var(--border-radius-xl);
+    overflow: hidden;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.06);
+    border: 1px solid rgba(0,0,0,0.04);
+  }
+  .story-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    aspect-ratio: 4/3;
+    transition: transform 0.4s ease;
+  }
+  .story-img-container:hover .story-img {
+    transform: scale(1.02);
+  }
+  .story-section {
+    margin-bottom: 5rem;
+  }
+</style>
+
+<div class="container story-wrapper">
+  
+  <!-- Section 1 -->
+  <div class="story-section">
+    <h1 class="story-title text-center mb-5">Our Story</h1>
+    <div class="row align-items-center">
+      <div class="col-lg-6 mb-4 mb-lg-0 pe-lg-5">
+        <div class="story-img-container">
+          <img src="https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Authentic Biryani" class="story-img">
+        </div>
+      </div>
+      <div class="col-lg-6 ps-lg-4">
+        <h2 class="story-heading">A Journey Through Flavor</h2>
+        <p class="story-text">
+          Foodora has been serving authentic South Indian and Indo-Chinese cuisine with a focus on flavorful, spice-forward meals. Our recipes blend regional flavors with approachable comfort dishes.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 2 -->
+  <div class="story-section">
+    <div class="row align-items-center flex-column-reverse flex-lg-row">
+      <div class="col-lg-6 pe-lg-5 mt-4 mt-lg-0">
+        <h2 class="story-heading">Crafted With Passion</h2>
+        <p class="story-text">
+          Each dish is prepared with fresh ingredients and traditional spices, ensuring every bite delivers the true essence of Indian flavors. Lunch buffets, dinner specials, and à la carte options cater to every taste, including vegetarian, vegan, and gluten-free diets.
+        </p>
+      </div>
+      <div class="col-lg-6 mb-0 ps-lg-4">
+        <div class="story-img-container">
+          <img src="https://images.unsplash.com/photo-1601050690597-df0568f70950?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Delicious Chicken" class="story-img">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 3 -->
+  <div class="story-section text-center" style="max-width: 800px; margin-left: auto; margin-right: auto; padding-top: 2rem; border-top: 1px solid rgba(174, 49, 49, 0.15);">
+    <h2 class="story-heading mb-3">Family-Friendly & Welcoming</h2>
+    <p class="story-text">
+      We provide dine-in, takeout, delivery, and catering services, all with generous portions, great value, and attentive service. Foodora is a place for friends, families, and food lovers to enjoy authentic Indian cuisine in a relaxed and inviting environment.
+    </p>
+  </div>
+
+</div>
+{% endblock %}

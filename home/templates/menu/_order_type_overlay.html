@@ -1,0 +1,249 @@
+{% with order_type=request.session.order_type %}
+  {% if show_order_type_popup or not order_type %}
+    <div class="order-type-overlay" data-order-type-popup role="dialog" aria-modal="true" aria-label="Choose Order Type">
+      <div class="order-type-card order-type-popup-card">
+        <button class="order-type-close" type="button" data-order-type-close-toggle aria-label="Close dialog">×</button>
+        <div class="order-type-panel" data-order-type-panel>
+          <div class="order-type-title">Choose Order Type</div>
+          <div class="order-type-subtitle">You can switch this later from the sidebar card.</div>
+          <div class="order-type-actions" data-order-type-actions>
+            <a class="btn btn-lg btn-light order-type-btn" href="{% url 'menu:set_order_type' 'PICKUP' %}?next={{ request.get_full_path|urlencode }}">Pickup</a>
+            <button class="btn btn-lg btn-brand order-type-btn" type="button" data-order-type-delivery-toggle>Delivery</button>
+          </div>
+          <form class="order-type-delivery-form d-none" data-order-type-delivery-form method="post" action="{% url 'menu:set_order_type' 'DELIVERY' %}">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ request.get_full_path }}" />
+            <label class="order-type-form-label" for="delivery-pincode-input">Enter delivery pincode</label>
+            <div class="order-type-form-row">
+              <input id="delivery-pincode-input" class="form-control form-control-lg" name="pincode" type="text" maxlength="20" placeholder="Enter zip code" autocomplete="postal-code" />
+              <button class="btn btn-lg btn-brand" type="submit">Continue</button>
+            </div>
+            <div class="order-type-error d-none" data-order-type-error></div>
+            <div class="order-type-hint">
+              {% if delivery_pincodes %}
+                Delivery available for: {{ delivery_pincodes|join:", " }}
+              {% else %}
+                Delivery pincodes are not configured yet.
+              {% endif %}
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  {% elif order_type %}
+    <div class="order-type-float" role="group" aria-label="Selected Order Type">
+      <div class="order-type-card order-type-card-compact">
+        <div class="order-type-summary" data-order-type-summary>
+          <div>
+            <div class="order-type-summary-label">Order type</div>
+            <div class="order-type-summary-value">
+              {% if order_type == 'DELIVERY' %}Delivery{% else %}Pickup{% endif %}
+            </div>
+          </div>
+          <button class="btn btn-lg btn-brand order-type-btn order-type-change-btn" type="button" data-order-type-change-toggle>Change</button>
+        </div>
+      </div>
+    </div>
+    <div class="order-type-overlay d-none" data-order-type-popup role="dialog" aria-modal="true" aria-label="Choose Order Type">
+      <div class="order-type-card order-type-popup-card">
+        <button class="order-type-close" type="button" data-order-type-close-toggle aria-label="Close dialog">×</button>
+        <div class="order-type-panel" data-order-type-panel>
+          <div class="order-type-title">Choose Order Type</div>
+          <div class="order-type-subtitle">You can switch this later from the sidebar card.</div>
+          <div class="order-type-actions" data-order-type-actions>
+            <a class="btn btn-lg btn-light order-type-btn" href="{% url 'menu:set_order_type' 'PICKUP' %}?next={{ request.get_full_path|urlencode }}">Pickup</a>
+            <button class="btn btn-lg btn-brand order-type-btn" type="button" data-order-type-delivery-toggle>Delivery</button>
+          </div>
+          <form class="order-type-delivery-form d-none" data-order-type-delivery-form method="post" action="{% url 'menu:set_order_type' 'DELIVERY' %}">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ request.get_full_path }}" />
+            <label class="order-type-form-label" for="delivery-pincode-input">Enter delivery pincode</label>
+            <div class="order-type-form-row">
+              <input id="delivery-pincode-input" class="form-control form-control-lg" name="pincode" type="text" maxlength="20" placeholder="Enter zip code" autocomplete="postal-code" />
+              <button class="btn btn-lg btn-brand" type="submit">Continue</button>
+            </div>
+            <div class="order-type-error d-none" data-order-type-error></div>
+            <div class="order-type-hint">
+              {% if delivery_pincodes %}
+                Delivery available for: {{ delivery_pincodes|join:", " }}
+              {% else %}
+                Delivery pincodes are not configured yet.
+              {% endif %}
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+{% endwith %}
+{{ delivery_pincodes|json_script:"delivery-pincodes-data" }}
+<script>
+  (function () {
+    var changeToggle = document.querySelector('[data-order-type-change-toggle]');
+    var closeToggle = document.querySelector('[data-order-type-close-toggle]');
+    var popup = document.querySelector('[data-order-type-popup]');
+    var deliveryToggle = document.querySelector('[data-order-type-delivery-toggle]');
+    var panel = document.querySelector('[data-order-type-panel]');
+    var form = document.querySelector('[data-order-type-delivery-form]');
+    var errorBox = document.querySelector('[data-order-type-error]');
+    var input = document.getElementById('delivery-pincode-input');
+    var allowedPincodes = [];
+    var bodyLocked = false;
+
+    try {
+      var dataNode = document.getElementById('delivery-pincodes-data');
+      if (dataNode) {
+        allowedPincodes = JSON.parse(dataNode.textContent || '[]');
+      }
+    } catch (err) {
+      allowedPincodes = [];
+    }
+
+    function normalize(value) {
+      return (value || '').trim();
+    }
+
+    function showError(message) {
+      if (!errorBox) return;
+      errorBox.textContent = message;
+      errorBox.classList.remove('d-none');
+    }
+
+    function clearError() {
+      if (!errorBox) return;
+      errorBox.textContent = '';
+      errorBox.classList.add('d-none');
+    }
+
+    function resetChooser() {
+      var actions = document.querySelector('[data-order-type-actions]');
+      if (actions) {
+        actions.classList.remove('d-none');
+      }
+      if (form) {
+        form.classList.add('d-none');
+      }
+      clearError();
+      if (input) {
+        input.value = '';
+      }
+    }
+
+    function lockBody() {
+      document.body.classList.add('order-type-locked');
+      bodyLocked = true;
+    }
+
+    function unlockBody() {
+      document.body.classList.remove('order-type-locked');
+      bodyLocked = false;
+    }
+
+    function openPopup() {
+      if (!popup) return;
+      popup.classList.remove('d-none');
+      lockBody();
+      resetChooser();
+      if (panel) {
+        panel.classList.remove('d-none');
+      }
+    }
+
+    function closePopup() {
+      if (!popup) return;
+      popup.classList.add('d-none');
+      resetChooser();
+      if (bodyLocked) {
+        unlockBody();
+      }
+    }
+
+    if (popup && !popup.classList.contains('d-none')) {
+      lockBody();
+    }
+
+    if (changeToggle && panel) {
+      changeToggle.addEventListener('click', function () {
+        openPopup();
+      });
+    }
+
+    if (closeToggle) {
+      closeToggle.addEventListener('click', function () {
+        closePopup();
+      });
+    }
+
+    if (deliveryToggle && panel) {
+      deliveryToggle.addEventListener('click', function () {
+        var actions = document.querySelector('[data-order-type-actions]');
+        if (actions && form) {
+          actions.classList.add('d-none');
+          form.classList.remove('d-none');
+          clearError();
+          if (input) {
+            input.focus();
+          }
+        }
+      });
+    }
+
+    document.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape' && popup && !popup.classList.contains('d-none')) {
+        closePopup();
+      }
+    });
+
+    if (form && input) {
+      form.addEventListener('submit', function (event) {
+        event.preventDefault();
+        var pincode = normalize(input.value);
+        clearError();
+
+        if (!pincode) {
+          showError('Enter zip code is not available for delivery.');
+          input.focus();
+          return;
+        }
+
+        if (allowedPincodes.length && allowedPincodes.indexOf(pincode) === -1) {
+          showError('Enter zip code is not available for delivery.');
+          input.focus();
+          return;
+        }
+
+        var csrfToken = form.querySelector('[name=csrfmiddlewaretoken]');
+        var payload = new FormData(form);
+        var nextUrl = form.querySelector('[name=next]');
+        if (nextUrl) {
+          payload.set('next', nextUrl.value);
+        }
+        payload.set('pincode', pincode);
+
+        fetch(form.action, {
+          method: 'POST',
+          headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': csrfToken ? csrfToken.value : '',
+          },
+          body: payload,
+        })
+          .then(function (response) {
+            return response.json().then(function (data) {
+              if (!response.ok) {
+                throw new Error(data && data.error ? data.error : 'Enter zip code is not available for delivery.');
+              }
+              return data;
+            });
+          })
+          .then(function (data) {
+            window.location.href = data.redirect_url || '/';
+          })
+          .catch(function (error) {
+            showError(error.message || 'Enter zip code is not available for delivery.');
+            input.focus();
+          });
+      });
+    }
+  })();
+</script>

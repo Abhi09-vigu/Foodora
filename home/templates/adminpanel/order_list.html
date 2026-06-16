@@ -1,0 +1,29 @@
+{% extends 'adminpanel/base.html' %}
+
+{% block title %}Orders{% endblock %}
+
+{% block content %}
+  <div class="section-card p-4">
+    <h1 class="h4 mb-3">Orders</h1>
+    <div class="table-responsive">
+      <table class="table align-middle">
+        <thead><tr><th>ID</th><th>Customer</th><th>Status</th><th>Paid</th><th>Total</th><th>Created</th><th></th></tr></thead>
+        <tbody>
+          {% for o in orders %}
+            <tr>
+              <td>#{{ o.id }}</td>
+              <td>{{ o.user.email }}</td>
+              <td>{{ o.get_status_display }}</td>
+              <td>{% if o.is_paid %}<span class="badge text-bg-success">Yes</span>{% else %}<span class="badge text-bg-warning">No</span>{% endif %}</td>
+              <td>₹{{ o.total }}</td>
+              <td class="text-muted small">{{ o.created_at }}</td>
+              <td class="text-end"><a class="btn btn-sm btn-outline-secondary" href="{% url 'adminpanel:order_detail' o.id %}">View</a></td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="7" class="text-muted">No orders yet.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+{% endblock %}

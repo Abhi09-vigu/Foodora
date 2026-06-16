@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block title %}Orders | Foodora{% endblock %}
+
+{% block content %}
+<div class="container pb-4">
+  <div class="section-card p-4">
+    <h1 class="h4 mb-3">Order history</h1>
+
+    {% for o in orders %}
+      <div class="product-card p-3 mb-2">
+        <div class="d-flex justify-content-between flex-wrap gap-2">
+          <div>
+            <div class="fw-semibold">Order #{{ o.id }}</div>
+            <div class="text-muted small">{{ o.created_at }} · {{ o.status }} · {% if o.is_paid %}Paid{% else %}Unpaid{% endif %}</div>
+          </div>
+          <div class="fw-bold">₹{{ o.total }}</div>
+        </div>
+        <div class="mt-2 d-flex flex-wrap gap-2">
+          <a class="btn btn-sm btn-outline-secondary" href="{% url 'orders:detail' o.id %}">Track</a>
+          <a class="btn btn-sm btn-outline-secondary" href="{% url 'orders:invoice' o.id %}">Invoice</a>
+          {% if not o.is_paid %}
+            <a class="btn btn-sm btn-brand" href="{% url 'payments:payment_with_id' o.id %}">Pay</a>
+          {% endif %}
+        </div>
+      </div>
+    {% empty %}
+      <div class="text-muted">No orders yet.</div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

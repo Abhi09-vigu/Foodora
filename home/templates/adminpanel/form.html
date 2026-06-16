@@ -1,0 +1,22 @@
+{% extends 'adminpanel/base.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+  <div class="section-card p-4" style="max-width:980px;">
+    <h1 class="h4 mb-3">{{ title }}</h1>
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      {{ form.non_field_errors }}
+      {% for field in form %}
+        <div class="mb-3">
+          <label class="form-label">{{ field.label }}</label>
+          {{ field }}
+          <div class="text-danger small">{{ field.errors }}</div>
+        </div>
+      {% endfor %}
+      <button class="btn btn-brand" type="submit">Save</button>
+      <a class="btn btn-outline-secondary" href="{% url 'adminpanel:dashboard' %}">Back</a>
+    </form>
+  </div>
+{% endblock %}

@@ -1,0 +1,31 @@
+{% extends 'adminpanel/base.html' %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+  <div class="section-card p-4 mb-3">
+    <h1 class="h4 mb-3">Dashboard</h1>
+    <div class="row g-3">
+      <div class="col-6 col-lg-3"><div class="product-card p-3"><div class="text-muted small">Categories</div><div class="h4 mb-0">{{ stats.categories }}</div></div></div>
+      <div class="col-6 col-lg-3"><div class="product-card p-3"><div class="text-muted small">Menu items</div><div class="h4 mb-0">{{ stats.items }}</div></div></div>
+      <div class="col-6 col-lg-3"><div class="product-card p-3"><div class="text-muted small">Customers</div><div class="h4 mb-0">{{ stats.customers }}</div></div></div>
+      <div class="col-6 col-lg-3"><div class="product-card p-3"><div class="text-muted small">Paid sales</div><div class="h4 mb-0">₹{{ stats.sales_paid }}</div></div></div>
+    </div>
+  </div>
+
+  <div class="section-card p-4">
+    <h2 class="h5">Top selling foods</h2>
+    <div class="table-responsive">
+      <table class="table">
+        <thead><tr><th>Item</th><th>Qty</th></tr></thead>
+        <tbody>
+          {% for r in top_items %}
+            <tr><td>{{ r.menu_item__name }}</td><td>{{ r.qty }}</td></tr>
+          {% empty %}
+            <tr><td colspan="2" class="text-muted">No sales yet.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+{% endblock %}
