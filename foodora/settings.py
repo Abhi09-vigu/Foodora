@@ -38,6 +38,10 @@ MIDDLEWARE = [
     "home.middleware.HideStaffFromPublicSiteMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
+    "home.middleware.AdminSessionCookieMiddleware",
+
 ]
 
 ROOT_URLCONF = "foodora.urls"
